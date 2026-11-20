@@ -209,7 +209,10 @@
                     <div class="lg:col-span-5 apple-card p-6 space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="font-extrabold text-lg text-gray-900" id="comp-mode-title">Buat post</h3>
-                            <span class="text-xs font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Auto-Publish Ready</span>
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="btn-comp-delete" onclick="deleteCurrentComposerPost()" class="hidden bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold cursor-pointer"><i class="ph ph-trash"></i> Hapus</button>
+                                <span class="text-xs font-bold bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full">Auto-Publish Ready</span>
+                            </div>
                         </div>
                         <input type="hidden" id="comp-id">
 
@@ -429,6 +432,23 @@
             <div><label class="apple-label">Guidelines & Aturan Wajib (Hashtag, CTA, Pantangan)</label><textarea id="bc-guidelines" rows="2" class="apple-input" placeholder="Misal: Kalimat pendek. Wajib pakai hashtag #BaconFiles"></textarea></div>
             <div><label class="apple-label">Formula Hook Andalan (1 baris per template, gunakan {topic} / {num})</label><textarea id="bc-hooks" rows="3" class="apple-input font-mono text-xs" placeholder="Part {num}: Rahasia di balik {topic}&#10;Kenapa {topic} jarang diketahui orang?"></textarea></div>
             <div><label class="apple-label">Core Hook / Deskripsi Produk Utama</label><textarea id="bc-hook" rows="2" class="apple-input" placeholder="Jelaskan inti cerita atau produk utama brand ini..."></textarea></div>
+
+            <!-- PILLAR BATCH LEARNING (Untuk Swipe Batch AI) -->
+            <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
+                <div>
+                    <h4 class="text-xs font-extrabold text-gray-900 uppercase tracking-wider flex items-center gap-1.5"><i class="ph-fill ph-sparkle text-indigo-600"></i> Pillar Batch Learning (Acuan Menu Swipe)</h4>
+                    <p class="text-[11px] text-gray-500 mt-0.5">Isi gaya khusus untuk tiap jenis konten di menu Swipe agar hasil batch sesuai karakter pilarnya.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div><label class="apple-label">Pilar: Edukasi</label><input type="text" id="bc-pillar-edukasi" class="apple-input bg-white text-xs" placeholder="Misal: Fakta psikologi singkat + analogi"></div>
+                    <div><label class="apple-label">Pilar: Cerita / Serial</label><input type="text" id="bc-pillar-cerita" class="apple-input bg-white text-xs" placeholder="Misal: POV horor berseri, ending gantung"></div>
+                    <div><label class="apple-label">Pilar: Hiburan</label><input type="text" id="bc-pillar-hiburan" class="apple-input bg-white text-xs" placeholder="Misal: Situasi relatable gamer sehari-hari"></div>
+                    <div><label class="apple-label">Pilar: Behind The Scenes</label><input type="text" id="bc-pillar-bts" class="apple-input bg-white text-xs" placeholder="Misal: Proses bikin prompt AI & sound design"></div>
+                    <div><label class="apple-label">Pilar: Interaksi</label><input type="text" id="bc-pillar-interaksi" class="apple-input bg-white text-xs" placeholder="Misal: Pertanyaan debat / pilih A atau B"></div>
+                    <div><label class="apple-label">Pilar: Mitos vs Fakta</label><input type="text" id="bc-pillar-mitos" class="apple-input bg-white text-xs" placeholder="Misal: Bongkar teori konspirasi populer"></div>
+                </div>
+            </div>
+
             <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
                 <button type="button" onclick="closeBrandModal()" class="apple-btn-secondary px-4 py-2 text-xs">Batal</button>
                 <button type="button" onclick="submitBrandContext()" id="btn-save-brand" class="bg-gray-900 text-white px-5 py-2 rounded-xl text-xs font-bold cursor-pointer">Simpan Brand DNA</button>
@@ -491,29 +511,547 @@
             }, 3500);
         }
 
+        // Pembersih format jam agar tidak pernah menampilkan 1899-12-30
+        function cleanTimeStr(val, fallback = '19:00') {
+            if (!val) return fallback;
+            const s = String(val).trim();
+            const match = s.match(/(\d{1,2}:\d{2})/);
+            if (match) {
+                const parts = match[1].split(':');
+                return parts[0].padStart(2, '0') + ':' + parts[1];
+            }
+            return fallback;
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
-            // Render UI awal langsung sebelum data GAS selesai dimuat agar bar OAuth & tombol langsung aktif
+// ... existing code ... -->
+            for (let day = 1; day <= daysInMonth; day++) {
+                const fullDate = `${state.calYear}-${String(state.calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayKey = dayKeys[(startOffset + day - 1) % 7];
+                const dayContents = filteredContents.filter(c => String(c.scheduled_date).startsWith(fullDate));
+                let htmlEvents = '';
+
+                dayContents.forEach(c => {
+                    const tClean = cleanTimeStr(c.scheduled_time, '');
+                    htmlEvents += `
+                        <div class="cal-event flex items-center justify-between gap-1 group">
+                            <span onclick="editPostInComposer('${c.content_id}')" class="truncate flex-1">${tClean ? tClean + ' · ' : ''}${c.content_title}</span>
+                            <button type="button" onclick="event.stopPropagation(); deletePostById('${c.content_id}')" class="opacity-60 hover:opacity-100 text-red-600 font-bold px-1 cursor-pointer" title="Hapus jadwal">×</button>
+                        </div>
+                    `;
+                });
+
+                activeSlots.forEach(slot => {
+                    if (String(slot[dayKey]) === "TRUE") {
+                        const slotClean = cleanTimeStr(slot.time_slot, '19:00');
+                        const isFilled = dayContents.some(c => cleanTimeStr(c.scheduled_time, '') === slotClean && c.brand_name === slot.brand_name);
+                        if (!isFilled) {
+                            htmlEvents += `<div onclick="openComposerForSlot('${fullDate}', '${slotClean}', '${slot.brand_name}')" class="slot-pill">Slot ${slotClean}</div>`;
+                        }
+                    }
+                });
+
+                grid.innerHTML += `<div class="cal-cell"><div class="text-xs font-bold text-gray-800 mb-1">${day}</div>${htmlEvents}</div>`;
+            }
+        }
+// ... existing code ... -->
+        // --- COMPOSER & LIVE PREVIEW ---
+        function renderComposerQueue() {
+            const container = document.getElementById('composer-queue-list');
+            if (!container) return;
+            const list = getFilteredContents().filter(c => c.content_status !== 'Published');
+            container.innerHTML = list.length === 0 ? `<p class="text-xs text-gray-400 text-center py-6">Antrean kosong.</p>` : '';
+            list.forEach(c => {
+                const tClean = cleanTimeStr(c.scheduled_time, '');
+                container.innerHTML += `
+                    <div class="p-3 rounded-xl border border-gray-100 hover:border-blue-400 bg-gray-50 flex items-start justify-between gap-2 group">
+                        <div onclick="editPostInComposer('${c.content_id}')" class="flex-1 min-w-0 cursor-pointer">
+                            <div class="flex justify-between text-[10px] font-bold text-gray-400 mb-1"><span>${c.platform}</span><span>${String(c.scheduled_date).split('T')[0]} ${tClean}</span></div>
+                            <p class="text-xs font-bold text-gray-900 line-clamp-2">${c.content_title}</p>
+                        </div>
+                        <button type="button" onclick="deletePostById('${c.content_id}')" class="text-gray-400 hover:text-red-600 p-1 cursor-pointer" title="Hapus post"><i class="ph ph-trash text-sm"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        function openNewComposerPost() {
+            document.getElementById('comp-mode-title').innerText = "Buat post";
+            document.getElementById('comp-id').value = "";
+            document.getElementById('btn-comp-delete').classList.add('hidden');
+            document.getElementById('comp-title').value = "";
+            document.getElementById('comp-caption').value = "";
+            document.getElementById('comp-thumb-url').value = "";
+            document.getElementById('comp-status').value = "Ready";
+            document.getElementById('comp-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('comp-time').value = "19:00";
+            if (state.activeBrand !== 'ALL') document.getElementById('comp-brand').value = state.activeBrand;
+            updateLivePreview();
+            navigate('composer');
+        }
+
+        function openComposerForSlot(dateStr, timeStr, brandName) {
+            openNewComposerPost();
+            document.getElementById('comp-date').value = dateStr;
+            document.getElementById('comp-time').value = cleanTimeStr(timeStr, "19:00");
+            if (brandName) document.getElementById('comp-brand').value = brandName;
+            updateLivePreview();
+        }
+
+        function editPostInComposer(contentId) {
+            const c = state.contents.find(x => x.content_id === contentId);
+            if (!c) return;
+            document.getElementById('comp-mode-title').innerText = "Edit post";
+            document.getElementById('comp-id').value = c.content_id;
+            document.getElementById('btn-comp-delete').classList.remove('hidden');
+            if (c.brand_name) document.getElementById('comp-brand').value = c.brand_name;
+            document.getElementById('comp-platform').value = c.platform || "YouTube";
+            document.getElementById('comp-pillar').value = c.content_pillar || "Edukasi";
+            document.getElementById('comp-status').value = c.content_status || "Ready";
+            document.getElementById('comp-title').value = c.content_title || "";
+            document.getElementById('comp-caption').value = c.caption || "";
+            document.getElementById('comp-thumb-url').value = c.thumbnail_url || "";
+            document.getElementById('comp-date').value = String(c.scheduled_date).split('T')[0];
+            document.getElementById('comp-time').value = cleanTimeStr(c.scheduled_time, "19:00");
+            updateLivePreview();
+            navigate('composer');
+        }
+
+        async function deletePostById(contentId) {
+            if (!contentId) return;
+            const res = await apiPost('delete_post', { contentId });
+            if (res.success) {
+                showToast("Postingan berhasil dihapus!");
+                if (document.getElementById('comp-id').value === contentId) {
+                    openNewComposerPost();
+                }
+                bootstrapApp();
+            } else {
+                showToast("Gagal menghapus post: " + (res.error || "Error"), true);
+            }
+        }
+
+        function deleteCurrentComposerPost() {
+            const id = document.getElementById('comp-id').value;
+            if (id) deletePostById(id);
+        }
+        }
+
+        async function bootstrapApp() {
+            const dot = document.getElementById('sync-status-dot');
+            const statusText = document.getElementById('sync-status-text');
+            if (statusText) statusText.innerText = "Syncing Sheets...";
+
+            const res = await apiGet('bootstrap');
+            if (!res.success) {
+                if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-500";
+                if (statusText) statusText.innerText = "GAS Offline / Cek ENV";
+                showToast("Info Koneksi GAS: " + (res.error || "Gagal memuat data"), true);
+                return;
+            }
+
+            if (dot) dot.className = "w-2 h-2 rounded-full bg-green-500";
+            if (statusText) statusText.innerText = "Vercel Edge Live";
+
+            state.brands = res.brands || [];
+            state.slots = res.slots || [];
+            state.contents = res.contents || [];
+            state.assets = res.assets || [];
+            state.connections = res.connections || [];
+            state.inbox = res.inbox || [];
+
+            populateBrandDropdowns();
+            populateComposerAssetDropdown();
+            refreshAllViews();
+        }
+
+        function navigate(viewName) {
+            ALL_VIEWS.forEach(v => {
+                const nav = document.getElementById('nav-' + v);
+                if (nav && v !== 'swipe') nav.classList.remove('nav-active');
+                const view = document.getElementById('view-' + v);
+                if (view) view.classList.add('hidden');
+            });
+            const activeNav = document.getElementById('nav-' + viewName);
+            if (activeNav && viewName !== 'swipe') activeNav.classList.add('nav-active');
+            const targetView = document.getElementById('view-' + viewName);
+            if (targetView) targetView.classList.remove('hidden');
+
+            const titles = {
+                swipe: 'Swipe (Batch AI)', calendar: 'Kalender', composer: 'Buat Post', inbox: 'Balasan',
+                analytics: 'Analitik', assets: 'Aset', brandcontext: 'Learning & Brand DNA', settings: 'Pengaturan'
+            };
+            document.getElementById('header-title').innerText = titles[viewName] || viewName;
+            if (window.innerWidth < 768 && !document.getElementById('sidebar').classList.contains('-translate-x-full')) {
+                toggleMenu();
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('drawer-overlay').classList.toggle('hidden');
+        }
+
+        function populateBrandDropdowns() {
+            const ids = ['global-brand-switcher', 'swipe-brand', 'slot-brand-filter', 'comp-brand'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = id === 'global-brand-switcher' ? '<option value="ALL">🌐 All Brands</option>' : '';
+                state.brands.forEach(b => {
+                    el.innerHTML += `<option value="${b.brand_name}">${b.brand_name}</option>`;
+                });
+            });
+            document.getElementById('global-brand-switcher').value = state.activeBrand;
+        }
+
+        function switchBrandWorkspace() {
+            state.activeBrand = document.getElementById('global-brand-switcher').value;
+            document.getElementById('breadcrumb-brand').innerText = state.activeBrand === 'ALL' ? 'All Brands' : state.activeBrand;
+            if (state.activeBrand !== 'ALL') {
+                ['swipe-brand', 'slot-brand-filter', 'comp-brand'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = state.activeBrand;
+                });
+            }
+            refreshAllViews();
+        }
+
+        function getFilteredContents() {
+            return state.activeBrand === 'ALL' ? state.contents : state.contents.filter(c => c.brand_name === state.activeBrand);
+        }
+
+        function refreshAllViews() {
+            renderCalendar();
+            renderComposerQueue();
             renderSidebarOAuth();
             renderSettingsOAuthCards();
-            renderCalendar();
-            checkOAuthQueryParams();
-            bootstrapApp();
-        });
+            renderUnifiedInbox();
+            renderSlotMatrix();
+            renderBrandContextCards();
+            renderAssetsGallery();
+            updateAnalyticsKPI();
+            updateLivePreview();
+            updateSwipeDNAIndicator();
+        }
 
-        function checkOAuthQueryParams() {
-            const params = new URLSearchParams(window.location.search);
-            const banner = document.getElementById('oauth-banner');
-            const text = document.getElementById('oauth-banner-text');
-            if (params.get('oauth_success')) {
-                text.innerText = `Berhasil menghubungkan akun ${params.get('oauth_success')} via OAuth 2.0!`;
-                banner.classList.remove('hidden');
-                window.history.replaceState({}, document.title, "/");
-            } else if (params.get('oauth_error')) {
-                text.innerText = `OAuth Info: ${params.get('oauth_error')} (Pastikan ENV key sudah dipasang di Vercel)`;
-                banner.classList.remove('hidden');
-                banner.classList.replace('bg-blue-600', 'bg-amber-600');
-                window.history.replaceState({}, document.title, "/");
+        function updateSwipeDNAIndicator() {
+            const el = document.getElementById('swipe-dna-indicator');
+            const sel = document.getElementById('swipe-brand');
+            if (!el || !sel) return;
+            const b = state.brands.find(x => x.brand_name === sel.value);
+            if (b) {
+                el.innerHTML = `<i class="ph-fill ph-brain"></i> DNA Aktif: ${b.brand_name} • Mood: ${b.mood || b.tone_of_voice || 'Default'}`;
             }
+        }
+
+        // --- OAUTH CONNECTIONS ("Posting ke") ---
+        function connectOAuthPlatform(platform) {
+            const targetBrand = state.activeBrand === 'ALL'
+                ? (state.brands[0] ? state.brands[0].brand_name : 'Bacon Files')
+                : state.activeBrand;
+            window.location.href = `/api/oauth?action=connect&platform=${encodeURIComponent(platform)}&brand=${encodeURIComponent(targetBrand)}`;
+        }
+
+        async function disconnectOAuth(connId) {
+            await apiPost('disconnect_oauth', { connId });
+            showToast("Koneksi OAuth diputuskan.");
+            bootstrapApp();
+        }
+
+        function renderSidebarOAuth() {
+            const container = document.getElementById('sidebar-oauth-list');
+            if (!container) return;
+            const platforms = [
+                { name: 'Instagram', icon: 'ph-instagram-logo' },
+                { name: 'TikTok', icon: 'ph-tiktok-logo' },
+                { name: 'Threads', icon: 'ph-at' },
+                { name: 'YouTube', icon: 'ph-youtube-logo' }
+            ];
+            container.innerHTML = '';
+
+            platforms.forEach(p => {
+                const conn = state.connections.find(c =>
+                    c.platform === p.name && (state.activeBrand === 'ALL' || c.brand_name === state.activeBrand)
+                );
+                if (conn) {
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between py-1 px-1">
+                            <span class="text-xs font-semibold text-gray-700 flex items-center gap-2"><i class="ph ${p.icon} text-base"></i> ${p.name}</span>
+                            <span class="text-[10px] font-bold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">Terhubung</span>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between py-1 px-1">
+                            <span class="text-xs font-medium text-gray-500 flex items-center gap-2"><i class="ph ${p.icon} text-base"></i> ${p.name}</span>
+                            <button type="button" onclick="connectOAuthPlatform('${p.name}')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function renderSettingsOAuthCards() {
+            const container = document.getElementById('settings-oauth-cards');
+            if (!container) return;
+            const platforms = ['Instagram', 'TikTok', 'Threads', 'YouTube'];
+            container.innerHTML = '';
+
+            platforms.forEach(p => {
+                const conn = state.connections.find(c =>
+                    c.platform === p && (state.activeBrand === 'ALL' || c.brand_name === state.activeBrand)
+                );
+                container.innerHTML += `
+                    <div class="apple-card p-6 flex flex-col justify-between gap-4">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-base text-gray-900">Koneksi ${p}</h4>
+                            ${conn
+                                ? `<button type="button" onclick="disconnectOAuth('${conn.conn_id}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">Putuskan (${conn.username})</button>`
+                                : `<button type="button" onclick="connectOAuthPlatform('${p}')" class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold cursor-pointer">Hubungkan ${p}</button>`
+                            }
+                        </div>
+                        <p class="text-xs text-gray-500 leading-relaxed">
+                            Sekali tersambung via OAuth 2.0 Vercel, sistem otomatis mem-publish post berstatus <strong>Ready</strong> sesuai slot jadwal Anda.
+                        </p>
+                    </div>
+                `;
+            });
+        }
+
+        // --- UNIFIED INBOX ("Balasan") ---
+        function setInboxFilter(status) {
+            state.inboxFilter = status;
+            document.getElementById('tab-inbox-unreplied').className = status === 'Unreplied'
+                ? 'bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold'
+                : 'apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold';
+            document.getElementById('tab-inbox-replied').className = status === 'Replied'
+                ? 'bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold'
+                : 'apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold';
+            renderUnifiedInbox();
+        }
+
+        function renderUnifiedInbox() {
+            const container = document.getElementById('inbox-list-container');
+            const badge = document.getElementById('inbox-badge');
+            if (!container) return;
+
+            const brandFiltered = state.activeBrand === 'ALL' ? state.inbox : state.inbox.filter(m => m.brand_name === state.activeBrand);
+            const unrepliedCount = brandFiltered.filter(m => m.status === 'Unreplied').length;
+
+            if (badge) {
+                if (unrepliedCount > 0) {
+                    badge.innerText = unrepliedCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            const list = brandFiltered.filter(m => m.status === state.inboxFilter);
+            container.innerHTML = '';
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="apple-card p-12 text-center">
+                        <h4 class="font-bold text-base text-gray-900">Antrean kosong</h4>
+                        <p class="text-xs text-gray-500 mt-1">Belum ada balasan baru di kategori ini.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.forEach(m => {
+                container.innerHTML += `
+                    <div class="apple-card p-5 space-y-3">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-gray-900">${m.sender_username} <span class="text-gray-400 font-normal">di ${m.platform} (${m.brand_name})</span></span>
+                            <span class="text-gray-400">${String(m.received_at).split('T')[0]}</span>
+                        </div>
+                        <p class="text-sm text-gray-800 bg-gray-50 p-3 rounded-xl">"${m.comment_text}"</p>
+                        ${m.status === 'Unreplied' ? `
+                            <div class="flex gap-2">
+                                <input type="text" id="reply-input-${m.msg_id}" class="apple-input text-xs" placeholder="Tulis balasan Anda...">
+                                <button onclick="sendInboxReply('${m.msg_id}')" class="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold">Balas</button>
+                            </div>
+                        ` : `
+                            <p class="text-xs text-green-700 font-semibold">✓ Dibalas: "${m.reply_text}"</p>
+                        `}
+                    </div>
+                `;
+            });
+        }
+
+        async function sendInboxReply(msgId) {
+            const input = document.getElementById(`reply-input-${msgId}`);
+            if (!input || !input.value.trim()) return;
+            await apiPost('reply_inbox', { msgId, replyText: input.value.trim() });
+            showToast("Balasan terkirim!");
+            bootstrapApp();
+        }
+
+        // --- KALENDER & QUEUE SLOTS ---
+        function changeCalMonth(delta) {
+            state.calMonth += delta;
+            if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
+            if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            document.getElementById('cal-month-label').innerText = `${monthNames[state.calMonth]} ${state.calYear}`;
+            const grid = document.getElementById('calendar-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const firstDay = new Date(state.calYear, state.calMonth, 1).getDay();
+            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+            const daysInMonth = new Date(state.calYear, state.calMonth + 1, 0).getDate();
+            const dayKeys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+            const filteredContents = getFilteredContents();
+            const activeSlots = state.activeBrand === 'ALL' ? state.slots : state.slots.filter(s => s.brand_name === state.activeBrand);
+
+            for (let i = 0; i < startOffset; i++) grid.innerHTML += `<div class="cal-cell bg-gray-50/50"></div>`;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const fullDate = `${state.calYear}-${String(state.calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayKey = dayKeys[(startOffset + day - 1) % 7];
+                const dayContents = filteredContents.filter(c => String(c.scheduled_date).startsWith(fullDate));
+                let htmlEvents = '';
+
+                dayContents.forEach(c => {
+                    htmlEvents += `<div onclick="editPostInComposer('${c.content_id}')" class="cal-event">${c.scheduled_time || ''} · ${c.content_title}</div>`;
+                });
+
+                activeSlots.forEach(slot => {
+                    if (String(slot[dayKey]) === "TRUE") {
+                        const isFilled = dayContents.some(c => c.scheduled_time === slot.time_slot && c.brand_name === slot.brand_name);
+                        if (!isFilled) {
+                            htmlEvents += `<div onclick="openComposerForSlot('${fullDate}', '${slot.time_slot}', '${slot.brand_name}')" class="slot-pill">Slot ${slot.time_slot}</div>`;
+                        }
+                    }
+                });
+
+                grid.innerHTML += `<div class="cal-cell"><div class="text-xs font-bold text-gray-800 mb-1">${day}</div>${htmlEvents}</div>`;
+            }
+        }
+
+        // --- SWIPE BATCH GENERATOR ---
+        function togglePillar(el, pillarName) {
+            el.classList.toggle('pillar-selected');
+            if (state.selectedPillars.includes(pillarName)) {
+                state.selectedPillars = state.selectedPillars.filter(p => p !== pillarName);
+            } else {
+                state.selectedPillars.push(pillarName);
+            }
+        }
+
+        async function executeBatchGenerate() {
+            const pillars = state.selectedPillars.length > 0 ? state.selectedPillars : ['Edukasi', 'Hiburan', 'Cerita Brand'];
+            const brandName = document.getElementById('swipe-brand').value;
+            if (!brandName) return showToast("Tambahkan brand terlebih dahulu!", true);
+
+            const platform = document.getElementById('swipe-platform').value;
+            const count = parseInt(document.getElementById('swipe-count').value);
+            const btn = document.getElementById('btn-buat-batch');
+
+            btn.innerText = "Meracik Batch dari Brand DNA...";
+            btn.disabled = true;
+            const res = await apiPost('generate_batch', { brandName, platform, pillars, count });
+            btn.innerText = "Buat batch";
+            btn.disabled = false;
+
+            if (res.success) {
+                showToast(`Berhasil membuat ${res.count} konten sesuai DNA ${brandName}!`);
+                await bootstrapApp();
+                navigate('calendar');
+            } else {
+                showToast("Gagal membuat batch: " + (res.error || "Unknown error"), true);
+            }
+        }
+
+        // --- COMPOSER & LIVE PREVIEW ---
+        function renderComposerQueue() {
+            const container = document.getElementById('composer-queue-list');
+            if (!container) return;
+            const list = getFilteredContents().filter(c => c.content_status !== 'Published');
+            container.innerHTML = list.length === 0 ? `<p class="text-xs text-gray-400 text-center py-6">Antrean kosong.</p>` : '';
+            list.forEach(c => {
+                const tClean = cleanTimeStr(c.scheduled_time, '');
+                container.innerHTML += `
+                    <div class="p-3 rounded-xl border border-gray-100 hover:border-blue-400 bg-gray-50 flex items-start justify-between gap-2 group">
+                        <div onclick="editPostInComposer('${c.content_id}')" class="flex-1 min-w-0 cursor-pointer">
+                            <div class="flex justify-between text-[10px] font-bold text-gray-400 mb-1"><span>${c.platform}</span><span>${String(c.scheduled_date).split('T')[0]} ${tClean}</span></div>
+                            <p class="text-xs font-bold text-gray-900 line-clamp-2">${c.content_title}</p>
+                        </div>
+                        <button type="button" onclick="deletePostById('${c.content_id}')" class="text-gray-400 hover:text-red-600 p-1 cursor-pointer" title="Hapus post"><i class="ph ph-trash text-sm"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        function openNewComposerPost() {
+            document.getElementById('comp-mode-title').innerText = "Buat post";
+            document.getElementById('comp-id').value = "";
+            document.getElementById('btn-comp-delete').classList.add('hidden');
+            document.getElementById('comp-title').value = "";
+            document.getElementById('comp-caption').value = "";
+            document.getElementById('comp-thumb-url').value = "";
+            document.getElementById('comp-status').value = "Ready";
+            document.getElementById('comp-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('comp-time').value = "19:00";
+            if (state.activeBrand !== 'ALL') document.getElementById('comp-brand').value = state.activeBrand;
+            updateLivePreview();
+            navigate('composer');
+        }
+
+        function openComposerForSlot(dateStr, timeStr, brandName) {
+            openNewComposerPost();
+            document.getElementById('comp-date').value = dateStr;
+            document.getElementById('comp-time').value = cleanTimeStr(timeStr, "19:00");
+            if (brandName) document.getElementById('comp-brand').value = brandName;
+            updateLivePreview();
+        }
+
+        function editPostInComposer(contentId) {
+            const c = state.contents.find(x => x.content_id === contentId);
+            if (!c) return;
+            document.getElementById('comp-mode-title').innerText = "Edit post";
+            document.getElementById('comp-id').value = c.content_id;
+            document.getElementById('btn-comp-delete').classList.remove('hidden');
+            if (c.brand_name) document.getElementById('comp-brand').value = c.brand_name;
+            document.getElementById('comp-platform').value = c.platform || "YouTube";
+            document.getElementById('comp-pillar').value = c.content_pillar || "Edukasi";
+            document.getElementById('comp-status').value = c.content_status || "Ready";
+            document.getElementById('comp-title').value = c.content_title || "";
+            document.getElementById('comp-caption').value = c.caption || "";
+            document.getElementById('comp-thumb-url').value = c.thumbnail_url || "";
+            document.getElementById('comp-date').value = String(c.scheduled_date).split('T')[0];
+            document.getElementById('comp-time').value = cleanTimeStr(c.scheduled_time, "19:00");
+            updateLivePreview();
+            navigate('composer');
+        }
+
+        async function deletePostById(contentId) {
+            if (!contentId) return;
+            const res = await apiPost('delete_post', { contentId });
+            if (res.success) {
+                showToast("Postingan berhasil dihapus!");
+                if (document.getElementById('comp-id').value === contentId) {
+                    openNewComposerPost();
+                }
+                bootstrapApp();
+            } else {
+                showToast("Gagal menghapus post: " + (res.error || "Error"), true);
+            }
+        }
+
+        function deleteCurrentComposerPost() {
+            const id = document.getElementById('comp-id').value;
+            if (id) deletePostById(id);
+        }
         }
 
         async function bootstrapApp() {
@@ -1017,7 +1555,7 @@
                     base64Data: e.target.result,
                     fileName: file.name,
                     mimeType: file.type,
-             brandName
+                    brandName
                 });
                 document.getElementById('upload-idle-state').classList.remove('hidden');
                 document.getElementById('upload-loading-state').classList.add('hidden');
@@ -1063,10 +1601,11 @@
             }
 
             brandSlots.forEach(s => {
+                const slotClean = cleanTimeStr(s.time_slot, '19:00');
                 let checkboxes = days.map(d => `
                     <td class="py-3"><input type="checkbox" ${String(s[d]) === 'TRUE' ? 'checked' : ''} onchange="apiPost('toggle_slot', {slotId:'${s.slot_id}', dayKey:'${d}', value:this.checked})" class="w-4 h-4 accent-indigo-600 cursor-pointer"></td>
                 `).join('');
-                tbody.innerHTML += `<tr><td class="py-3 text-left font-bold">${s.time_slot}</td>${checkboxes}<td><button onclick="apiPost('delete_slot', {slotId:'${s.slot_id}'}).then(bootstrapApp)" class="text-red-500 cursor-pointer"><i class="ph ph-trash"></i></button></td></tr>`;
+                tbody.innerHTML += `<tr><td class="py-3 text-left font-bold">${slotClean}</td>${checkboxes}<td><button onclick="apiPost('delete_slot', {slotId:'${s.slot_id}'}).then(bootstrapApp)" class="text-red-500 cursor-pointer"><i class="ph ph-trash"></i></button></td></tr>`;
             });
         }
 
@@ -1133,6 +1672,39 @@
             document.getElementById('bc-guidelines').value = '';
             document.getElementById('bc-hooks').value = '';
             document.getElementById('bc-hook').value = '';
+            document.getElementById('bc-pillar-edukasi').value = '';
+            document.getElementById('bc-pillar-cerita').value = '';
+            document.getElementById('bc-pillar-hiburan').value = '';
+            document.getElementById('bc-pillar-bts').value = '';
+            document.getElementById('bc-pillar-interaksi').value = '';
+            document.getElementById('bc-pillar-mitos').value = '';
+            document.getElementById('brand-modal').classList.remove('hidden');
+            document.getElementById('brand-modal').classList.add('flex');
+        }
+
+        function editBrandForm(brandId) {
+            const b = state.brands.find(x => x.brand_id === brandId);
+            if (!b) return;
+            let pMap = {};
+            try { pMap = JSON.parse(b.pillar_learning || '{}'); } catch (e) {}
+
+            document.getElementById('brand-modal-title').innerText = `Edit DNA: ${b.brand_name}`;
+            document.getElementById('bc-id').value = b.brand_id;
+            document.getElementById('bc-name').value = b.brand_name || '';
+            document.getElementById('bc-niche').value = b.niche || '';
+            document.getElementById('bc-mood').value = b.mood || '';
+            document.getElementById('bc-tone').value = b.tone_of_voice || '';
+            document.getElementById('bc-audience').value = b.target_audience || '';
+            document.getElementById('bc-narrative').value = b.narrative_style || '';
+            document.getElementById('bc-guidelines').value = b.guidelines || '';
+            document.getElementById('bc-hooks').value = b.hook_formulas || '';
+            document.getElementById('bc-hook').value = b.product_or_core_hook || '';
+            document.getElementById('bc-pillar-edukasi').value = pMap['Edukasi'] || '';
+            document.getElementById('bc-pillar-cerita').value = pMap['Cerita Brand'] || '';
+            document.getElementById('bc-pillar-hiburan').value = pMap['Hiburan'] || '';
+            document.getElementById('bc-pillar-bts').value = pMap['Behind The Scenes'] || '';
+            document.getElementById('bc-pillar-interaksi').value = pMap['Interaksi'] || '';
+            document.getElementById('bc-pillar-mitos').value = pMap['Mitos vs Fakta'] || '';
             document.getElementById('brand-modal').classList.remove('hidden');
             document.getElementById('brand-modal').classList.add('flex');
         }
@@ -1168,6 +1740,15 @@
             btn.innerText = "Menyimpan...";
             btn.disabled = true;
 
+            const pillarLearningObj = {
+                "Edukasi": document.getElementById('bc-pillar-edukasi').value.trim(),
+                "Cerita Brand": document.getElementById('bc-pillar-cerita').value.trim(),
+                "Hiburan": document.getElementById('bc-pillar-hiburan').value.trim(),
+                "Behind The Scenes": document.getElementById('bc-pillar-bts').value.trim(),
+                "Interaksi": document.getElementById('bc-pillar-interaksi').value.trim(),
+                "Mitos vs Fakta": document.getElementById('bc-pillar-mitos').value.trim()
+            };
+
             const res = await apiPost('save_brand_context', {
                 payload: {
                     brand_id: document.getElementById('bc-id').value,
@@ -1179,7 +1760,8 @@
                     narrative_style: document.getElementById('bc-narrative').value,
                     guidelines: document.getElementById('bc-guidelines').value,
                     hook_formulas: document.getElementById('bc-hooks').value,
-                    product_or_core_hook: document.getElementById('bc-hook').value
+                    product_or_core_hook: document.getElementById('bc-hook').value,
+                    pillar_learning: JSON.stringify(pillarLearningObj)
                 }
             });
 
