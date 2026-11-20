@@ -9,9 +9,13 @@ export default async function handler(req, res) {
 
     if (platform === "Instagram") {
       const clientId = process.env.META_APP_ID;
-      if (!clientId) return res.redirect(`/?oauth_error=META_APP_ID_belum_diset`);
-      const scope = "instagram_business_basic,instagram_business_content_publish,instagram_business_manage_comments";
-      return res.redirect(`https://www.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${scope}&response_type=code&state=${state}`);
+      const configId = process.env.META_IG_CONFIG_ID;
+      if (!clientId || !configId) {
+        return res.redirect(`/?oauth_error=META_APP_ID_atau_META_IG_CONFIG_ID_belum_diset`);
+      }
+      return res.redirect(
+        `https://www.facebook.com/v21.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&config_id=${configId}&response_type=code&override_default_response_type=true&state=${state}`
+      );
     }
 
     if (platform === "Threads") {
@@ -74,24 +78,24 @@ export default async function handler(req, res) {
           username = ytData.items[0].snippet.title;
         }
       }
-
-      // B. INSTAGRAM TOKEN EXCHANGE
+      // B. INSTAGRAM UNIFIED LOGIN TOKEN EXCHANGE (graph.facebook.com)
       else if (p === "Instagram") {
-        const tokenRes = await fetch("https://api.instagram.com/oauth/access_token", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            client_id: process.env.META_APP_ID,
-            client_secret: process.env.META_APP_SECRET,
-            grant_type: "authorization_code",
-            redirect_uri: REDIRECT_URI,
-            code
-          })
-        });
+        const tokenUrl = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${process.env.META_APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&client_secret=${process.env.META_APP_SECRET}&code=${encodeURIComponent(code)}`;
+        const tokenRes = await fetch(tokenUrl);
         const tokenData = await tokenRes.json();
-        if (tokenData.error_message) throw new Error(tokenData.error_message);
+        if (tokenData.error) throw new Error(tokenData.error.message || "Gagal tukar token Instagram Unified Login");
         accessToken = tokenData.access_token;
-        platformUserId = String(tokenData.user_id || "");
+
+        // Ambil Instagram Professional Account ID & Username yang dibagikan saat onboarding
+        const igRes = await fetch(`https://graph.facebook.com/v21.0/me/accounts?fields=instagram_business_account{id,username}&access_token=${accessToken}`);
+        const igData = await igRes.json();
+        if (igData.data) {
+          const linkedPage = igData.data.find(page => page.instagram_business_account);
+          if (linkedPage && linkedPage.instagram_business_account) {
+            platformUserId = linkedPage.instagram_business_account.id;
+            username = `@${linkedPage.instagram_business_account.username}`;
+          }
+        }
       }
 
       // C. THREADS TOKEN EXCHANGE
