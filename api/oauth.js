@@ -8,13 +8,11 @@ export default async function handler(req, res) {
     const state = encodeURIComponent(JSON.stringify({ platform, brand }));
 
     if (platform === "Instagram") {
-      const clientId = process.env.META_APP_ID;
-      const configId = process.env.META_IG_CONFIG_ID;
-      if (!clientId || !configId) {
-        return res.redirect(`/?oauth_error=META_APP_ID_atau_META_IG_CONFIG_ID_belum_diset`);
-      }
+      const clientId = process.env.META_APP_ID || "1719082732943187";
+      const configId = process.env.META_IG_CONFIG_ID || "1821758155697606";
+      const igRedirectUri = ${BASE_URL}/;
       return res.redirect(
-        `https://www.facebook.com/v21.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&config_id=${configId}&response_type=code&override_default_response_type=true&state=${state}`
+        https://www.facebook.com/dialog/oauth?client_id=${clientId}&config_id=${configId}&display=popup&override_default_response_type=true&redirect_uri=${encodeURIComponent(igRedirectUri)}&response_type=code&state=${state}&prompt=login
       );
     }
 
