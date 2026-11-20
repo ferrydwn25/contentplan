@@ -546,6 +546,11 @@
             renderCalendar();
 
             const params = new URLSearchParams(window.location.search);
+            // Tangkap callback Instagram Unified Login yang kembali ke root URL (/?code=...&state=...)
+            if (params.get('code') && params.get('state')) {
+                window.location.href = `/api/oauth?code=${encodeURIComponent(params.get('code'))}&state=${encodeURIComponent(params.get('state'))}`;
+                return;
+            }
             if (params.get('oauth_success')) {
                 const banner = document.getElementById('oauth-banner');
                 document.getElementById('oauth-banner-text').innerText = `✓ Akun ${params.get('oauth_success')} berhasil terhubung via OAuth 2.0!`;
