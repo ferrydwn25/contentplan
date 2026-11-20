@@ -55,7 +55,10 @@
             
             <!-- WORKSPACE / BRAND SWITCHER -->
             <div>
-                <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-1">Active Brand</label>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Active Brand</label>
+                    <button onclick="openNewBrandForm()" class="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer">+ Brand Baru</button>
+                </div>
                 <select id="global-brand-switcher" onchange="switchBrandWorkspace()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 outline-none focus:border-blue-500 cursor-pointer">
                     <option value="ALL">🌐 All Brands (Global)</option>
                 </select>
@@ -66,13 +69,13 @@
             <a onclick="navigate('swipe')" id="nav-swipe" class="nav-item bg-gray-900 text-white hover:bg-gray-800 hover:text-white font-bold mb-2"><i class="ph-fill ph-sparkle text-lg"></i> Swipe (Batch AI)</a>
             <a onclick="navigate('calendar')" id="nav-calendar" class="nav-item nav-active"><i class="ph ph-calendar-blank text-lg"></i> Kalender</a>
             <a onclick="navigate('composer')" id="nav-composer" class="nav-item"><i class="ph ph-magic-wand text-lg"></i> Buat Post</a>
+            <a onclick="navigate('brandcontext')" id="nav-brandcontext" class="nav-item"><i class="ph ph-brain text-lg"></i> Learning & Brand DNA</a>
             <a onclick="navigate('inbox')" id="nav-inbox" class="nav-item flex justify-between">
                 <span class="flex items-center gap-3"><i class="ph ph-chat-circle-text text-lg"></i> Balasan</span>
                 <span id="inbox-badge" class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
             </a>
             <a onclick="navigate('analytics')" id="nav-analytics" class="nav-item"><i class="ph ph-chart-bar text-lg"></i> Analitik</a>
             <a onclick="navigate('assets')" id="nav-assets" class="nav-item"><i class="ph ph-images text-lg"></i> Aset & Drive</a>
-            <a onclick="navigate('brandcontext')" id="nav-brandcontext" class="nav-item"><i class="ph ph-book-open-text text-lg"></i> Brand Context</a>
             <a onclick="navigate('settings')" id="nav-settings" class="nav-item"><i class="ph ph-gear text-lg"></i> Pengaturan & Slot</a>
 
             <!-- QUICK OAUTH PANEL (Ala Bleam: "Posting ke") -->
@@ -116,6 +119,12 @@
             <button onclick="document.getElementById('oauth-banner').classList.add('hidden')" class="underline">Tutup</button>
         </div>
 
+        <!-- GLOBAL FLOATING TOAST (Pengganti alert() agar mulus di HP & PC) -->
+        <div id="app-toast" class="fixed bottom-5 right-5 z-50 hidden bg-gray-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl items-center gap-2.5 transition-all">
+            <i class="ph-fill ph-check-circle text-green-400 text-base" id="app-toast-icon"></i>
+            <span id="app-toast-msg">Tersimpan!</span>
+        </div>
+
         <div class="flex-1 overflow-y-auto p-4 md:p-8" id="app-container">
 
             <!-- 1. VIEW: KALENDER & QUEUE SLOTS -->
@@ -146,10 +155,15 @@
                 <div class="apple-card p-6 md:p-10 text-center">
                     <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-gray-800"><i class="ph ph-magic-wand"></i></div>
                     <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-2">Mau bikin konten apa?</h2>
-                    <p class="text-sm text-gray-500 max-w-lg mx-auto mb-8">Kami bikin satu batch post baru dari pilar yang kamu pilih di bawah dan otomatis mengisinya ke slot kosong terdekat.</p>
+                    <p class="text-sm text-gray-500 max-w-lg mx-auto mb-4">Sistem meracik batch konten otomatis berdasarkan <strong>Mood, Guidelines, dan Gaya Narasi</strong> di menu Learning & Brand DNA (tanpa perlu API Key).</p>
+                    <div class="mb-6">
+                        <span id="swipe-dna-indicator" class="inline-flex items-center gap-1.5 text-xs font-bold bg-indigo-50 text-indigo-700 px-3.5 py-1.5 rounded-full border border-indigo-100">
+                            <i class="ph-fill ph-brain"></i> Brand DNA Aktif
+                        </span>
+                    </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8 text-left bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                        <div><label class="apple-label">Target Brand</label><select id="swipe-brand" class="apple-input bg-white font-bold"></select></div>
+                        <div><label class="apple-label">Target Brand</label><select id="swipe-brand" onchange="updateSwipeDNAIndicator()" class="apple-input bg-white font-bold"></select></div>
                         <div>
                             <label class="apple-label">Platform</label>
                             <select id="swipe-platform" class="apple-input bg-white font-bold">
@@ -265,8 +279,8 @@
                         </div>
 
                         <div class="flex flex-col sm:flex-row gap-2 pt-3 border-t border-gray-100">
-                            <button onclick="submitComposerPost(false)" class="apple-btn-secondary flex-1 py-2.5">Simpan Jadwal Ini</button>
-                            <button onclick="submitComposerPost(true)" class="bg-gray-900 hover:bg-black text-white rounded-xl flex-1 py-2.5 text-xs font-bold cursor-pointer"><i class="ph ph-calendar-plus"></i> Jadwalkan ke Slot Berikutnya</button>
+                            <button onclick="submitComposerPost(false)" id="btn-save-manual" class="apple-btn-secondary flex-1 py-2.5">Simpan Jadwal Ini</button>
+                            <button onclick="submitComposerPost(true)" id="btn-save-queue" class="bg-gray-900 hover:bg-black text-white rounded-xl flex-1 py-2.5 text-xs font-bold cursor-pointer"><i class="ph ph-calendar-plus"></i> Jadwalkan ke Slot Berikutnya</button>
                         </div>
                     </div>
 
@@ -352,16 +366,16 @@
                     </div>
                 </div>
                 <div id="assets-gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
-            </div>
-
-            <!-- 7. VIEW: BRAND CONTEXT -->
-            <div id="view-brandcontext" class="view-section hidden max-w-4xl mx-auto space-y-6">
-                <div class="flex justify-between items-center">
+            <!-- 7. VIEW: LEARNING & BRAND DNA (MOOD, GUIDELINES, NARASI, AUTO-LEARN) -->
+            <div id="view-brandcontext" class="view-section hidden max-w-5xl mx-auto space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
-                        <h2 class="text-2xl font-extrabold text-gray-900">Brand Context & Produk</h2>
-                        <p class="text-xs text-gray-500">AI memakai deskripsi dan gaya bahasa ini saat membuat konten.</p>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Learning & Brand DNA</h2>
+                        <p class="text-xs text-gray-500">Atur Mood, Guidelines, Gaya Narasi, dan Formula Hook agar Swipe & Buat Post meniru gaya tiap brand Anda.</p>
                     </div>
-                    <button onclick="openNewBrandForm()" class="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold">+ Brand Baru</button>
+                    <button onclick="openNewBrandForm()" class="bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+                        <i class="ph ph-plus"></i> Tambah Brand Baru
+                    </button>
                 </div>
                 <div id="brand-context-cards" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
             </div>
@@ -389,30 +403,30 @@
                             <tbody id="slot-matrix-body" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
-                </div>
-
-                <!-- Koneksi OAuth 2.0 (Instagram, TikTok, Threads, YouTube) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="settings-oauth-cards">
-                    <!-- Rendered via JS -->
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- MODAL BRAND CONTEXT -->
+    <!-- MODAL BRAND DNA & LEARNING -->
     <div id="brand-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-4">
-            <h3 class="text-lg font-bold">Brand Context</h3>
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h3 class="text-lg font-extrabold text-gray-900" id="brand-modal-title">Pengaturan Brand DNA & Learning</h3>
+                <button onclick="closeBrandModal()" class="text-gray-400 hover:text-gray-700 p-1"><i class="ph ph-x text-lg"></i></button>
+            </div>
             <input type="hidden" id="bc-id">
-            <div><label class="apple-label">Nama Brand</label><input type="text" id="bc-name" class="apple-input"></div>
-            <div><label class="apple-label">Niche Utama</label><input type="text" id="bc-niche" class="apple-input"></div>
-            <div><label class="apple-label">Target Audience</label><input type="text" id="bc-audience" class="apple-input"></div>
-            <div><label class="apple-label">Tone of Voice</label><input type="text" id="bc-tone" class="apple-input"></div>
-            <div><label class="apple-label">Core Hook / Produk</label><textarea id="bc-hook" rows="3" class="apple-input"></textarea></div>
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="document.getElementById('brand-modal').classList.add('hidden')" class="apple-btn-secondary px-4 py-2 text-xs">Batal</button>
-                <button onclick="submitBrandContext()" class="apple-btn px-5 py-2 text-xs">Simpan</button>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div><label class="apple-label">Nama Brand *</label><input type="text" id="bc-name" class="apple-input font-bold" placeholder="Misal: Bacon Files"></div>
+                <div><label class="apple-label">Niche Utama</label><input type="text" id="bc-niche" class="apple-input" placeholder="Misal: Roblox Horror ARG"></div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div><label class="apple-label">Mood & Atmosfer</label><input type="text" id="bc-mood" class="apple-input" placeholder="Misal: Dark, tegang, misterius"></div>
+                <div><label class="apple-label">Tone of Voice</label><input type="text" id="bc-tone" class="apple-input" placeholder="Misal: Fast-paced, to the point"></div>
+            </div>
+            <div><label class="apple-label">Target Audience</label><input type="text" id="bc-audience" class="apple-input" placeholder="Misal: Gen-Z Gamers US & Global"></div>
+            <div><label class="apple-label">Gaya Narasi (Struktur Storytelling)</label><textarea id="bc-narrative" rows="2" class="apple-input" placeholder="Misal: Hook 3 detik -> Masalah -> Plot Twist -> Cliffhanger"></textarea></div>
+            <div><label class="apple-label">Guidelines & Aturan Wajib (Hashtag, CTA, Pantangan)</label><textarea id="bc-guidelines" rows="2" class="apple-input" placeholder="Misal: Kalimat pendek. Wajib pakai hashtag #BaconFiles"></textarea></div>
+            <div><label class="apple-label">Formula Hook Andalan (1 baris per template, gunakan {topic} / {num})</label><textarea id="bc-hooks" rows="3" class="apple-input font-mono text-xs" placeholder="Part {num}: Rahasia di balik {topic}&#10;Kenapa {topic} jarang diketahui orang?"></textarea></div>
+            <div><label class="apple-label">Core Hook / Deskripsi Produk Utama</label><textarea id="bc-hook" rows="2" class="apple-input" placeholder="Jelaskan inti cerita atau produk utama brand ini..."></textarea></div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                <button onclick="closeBrandModal()" class="apple-btn-secondary px-4 py-2 text-xs">Batal</button>
+                <button onclick="submitBrandContext()" id="btn-save-brand" class="bg-gray-900 text-white px-5 py-2 rounded-xl text-xs font-bold cursor-pointer">Simpan Brand DNA</button>
             </div>
         </div>
     </div>
@@ -432,20 +446,20 @@
             calMonth: 10,
             selectedPillars: []
         };
-
-        // Helper API Fetcher ke Vercel Serverless Proxy (/api/gas-proxy)
-        async function apiGet(endpoint) {
-            const res = await fetch(`/api/gas-proxy?api=${encodeURIComponent(endpoint)}`);
-            return await res.json();
-        }
-
-        async function apiPost(action, bodyObj = {}) {
-            const res = await fetch('/api/gas-proxy', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action, ...bodyObj })
-            });
-            return await res.json();
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('app-toast');
+            const icon = document.getElementById('app-toast-icon');
+            const text = document.getElementById('app-toast-msg');
+            text.innerText = msg;
+            icon.className = isError 
+                ? 'ph-fill ph-warning-circle text-red-400 text-base' 
+                : 'ph-fill ph-check-circle text-green-400 text-base';
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 3500);
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -499,8 +513,8 @@
             document.getElementById('view-' + viewName).classList.remove('hidden');
 
             const titles = {
-                swipe: 'Swipe', calendar: 'Kalender', composer: 'Buat', inbox: 'Balasan',
-                analytics: 'Analitik', assets: 'Aset', brandcontext: 'Brand Context', settings: 'Pengaturan'
+                swipe: 'Swipe (Batch AI)', calendar: 'Kalender', composer: 'Buat Post', inbox: 'Balasan',
+                analytics: 'Analitik', assets: 'Aset', brandcontext: 'Learning & Brand DNA', settings: 'Pengaturan'
             };
             document.getElementById('header-title').innerText = titles[viewName] || viewName;
             if (window.innerWidth < 768 && !document.getElementById('sidebar').classList.contains('-translate-x-full')) {
@@ -553,6 +567,17 @@
             renderAssetsGallery();
             updateAnalyticsKPI();
             updateLivePreview();
+            updateSwipeDNAIndicator();
+        }
+
+        function updateSwipeDNAIndicator() {
+            const el = document.getElementById('swipe-dna-indicator');
+            const sel = document.getElementById('swipe-brand');
+            if (!el || !sel) return;
+            const b = state.brands.find(x => x.brand_name === sel.value);
+            if (b) {
+                el.innerHTML = `<i class="ph-fill ph-brain"></i> DNA Aktif: ${b.brand_name} • Mood: ${b.mood || b.tone_of_voice || 'Default'}`;
+            }
         }
 
         // --- OAUTH CONNECTIONS ("Hubungkan") ---
@@ -753,19 +778,24 @@
         async function executeBatchGenerate() {
             const pillars = state.selectedPillars.length > 0 ? state.selectedPillars : ['Edukasi', 'Hiburan', 'Cerita Brand'];
             const brandName = document.getElementById('swipe-brand').value;
+            if (!brandName) return showToast("Tambahkan brand terlebih dahulu!", true);
+
             const platform = document.getElementById('swipe-platform').value;
             const count = parseInt(document.getElementById('swipe-count').value);
             const btn = document.getElementById('btn-buat-batch');
 
-            btn.innerText = "Membuat Batch...";
+            btn.innerText = "Meracik Batch dari Brand DNA...";
             btn.disabled = true;
             const res = await apiPost('generate_batch', { brandName, platform, pillars, count });
             btn.innerText = "Buat batch";
             btn.disabled = false;
 
             if (res.success) {
+                showToast(`Berhasil membuat ${res.count} konten sesuai DNA ${brandName}!`);
                 await bootstrapApp();
                 navigate('calendar');
+            } else {
+                showToast("Gagal membuat batch: " + (res.error || "Unknown error"), true);
             }
         }
 
@@ -851,19 +881,24 @@
 
         async function runComposerAI() {
             const prompt = document.getElementById('comp-ai-prompt').value.trim();
-            if (!prompt) return;
+            if (!prompt) return showToast("Ceritain dulu ide post yang kamu mau!", true);
             const btn = document.getElementById('btn-comp-ai');
-            btn.innerText = "...";
+            btn.innerText = "Meracik...";
+            btn.disabled = true;
             const res = await apiPost('ai_caption', {
                 prompt,
                 brandName: document.getElementById('comp-brand').value,
                 platform: document.getElementById('comp-platform').value
             });
             btn.innerText = "Generate";
+            btn.disabled = false;
             if (res.success) {
                 document.getElementById('comp-title').value = res.title;
                 document.getElementById('comp-caption').value = res.caption;
                 updateLivePreview();
+                showToast("Draft hook & caption diracik dari Brand DNA!");
+            } else {
+                showToast("Gagal generate: " + res.error, true);
             }
         }
 
@@ -874,39 +909,34 @@
                 platform: document.getElementById('comp-platform').value,
                 content_pillar: document.getElementById('comp-pillar').value,
                 content_status: document.getElementById('comp-status').value,
-                content_title: document.getElementById('comp-title').value,
+                content_title: document.getElementById('comp-title').value.trim(),
                 caption: document.getElementById('comp-caption').value,
                 thumbnail_url: document.getElementById('comp-thumb-url').value,
                 scheduled_date: document.getElementById('comp-date').value,
                 scheduled_time: document.getElementById('comp-time').value
             };
-            if (!payload.content_title) return alert("Judul tidak boleh kosong!");
+            if (!payload.brand_name) return showToast("Pilih atau buat brand dulu!", true);
+            if (!payload.content_title) return showToast("Judul / Hook tidak boleh kosong!", true);
+
+            const btn = document.getElementById(autoQueue ? 'btn-save-queue' : 'btn-save-manual');
+            const origText = btn.innerHTML;
+            btn.innerText = "Menyimpan...";
+            btn.disabled = true;
+
             const res = await apiPost('save_composer_post', { payload, autoQueue });
+            btn.innerHTML = origText;
+            btn.disabled = false;
+
             if (res.success) {
+                showToast(`Tersimpan! Jadwal: ${res.scheduled_date} jam ${res.scheduled_time}`);
                 await bootstrapApp();
                 navigate('calendar');
+            } else {
+                showToast("Gagal menyimpan: " + (res.error || "Error"), true);
             }
         }
 
-        // --- ASSETS & SLOT MATRIX & BRAND CONTEXT ---
-        function populateComposerAssetDropdown() {
-            const sel = document.getElementById('comp-asset-select');
-            sel.innerHTML = '<option value="">-- Pilih dari Perpustakaan Aset --</option>';
-            state.assets.forEach(a => sel.innerHTML += `<option value="${a.file_url}">${a.file_name}</option>`);
-        }
-
-        function selectAssetForComposer() {
-            document.getElementById('comp-thumb-url').value = document.getElementById('comp-asset-select').value;
-            updateLivePreview();
-        }
-
-        function handleDriveFileUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            document.getElementById('upload-idle-state').classList.add('hidden');
-            document.getElementById('upload-loading-state').classList.remove('hidden');
-
-            const reader = new FileReader();
+        // --- ASSETS & SLOT MATRIX & BRAND DNA LEARNING ---
             reader.onload = async function(e) {
                 const brandName = state.activeBrand === 'ALL' ? 'General' : state.activeBrand;
                 await apiPost('upload_asset', { base64Data: e.target.result, fileName: file.name, mimeType: file.type, brandName });
@@ -958,36 +988,138 @@
         function renderBrandContextCards() {
             const container = document.getElementById('brand-context-cards');
             container.innerHTML = '';
+            if (state.brands.length === 0) {
+                container.innerHTML = `<div class="col-span-full apple-card p-8 text-center text-xs text-gray-500">Belum ada brand. Klik "+ Tambah Brand Baru" di atas.</div>`;
+                return;
+            }
             state.brands.forEach(b => {
                 container.innerHTML += `
-                    <div class="apple-card p-5 space-y-2">
-                        <div class="flex justify-between items-center"><h4 class="font-bold text-base">${b.brand_name}</h4><span class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-bold">${b.niche}</span></div>
-                        <p class="text-xs text-gray-500"><strong>Tone:</strong> ${b.tone_of_voice}</p>
-                        <p class="text-xs text-gray-600">${b.product_or_core_hook}</p>
+                    <div class="apple-card p-5 flex flex-col justify-between gap-4">
+                        <div class="space-y-2.5">
+                            <div class="flex justify-between items-start gap-2">
+                                <div>
+                                    <h4 class="font-extrabold text-base text-gray-900">${b.brand_name}</h4>
+                                    <span class="text-[11px] bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-bold inline-block mt-1">${b.niche || 'General'}</span>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button onclick="editBrandForm('${b.brand_id}')" class="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Edit Brand DNA"><i class="ph ph-pencil-simple"></i></button>
+                                    <button onclick="deleteBrandItem('${b.brand_id}', '${b.brand_name}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Hapus Brand"><i class="ph ph-trash"></i></button>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-600 space-y-1 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                <p><strong>Mood:</strong> ${b.mood || '-'}</p>
+                                <p><strong>Gaya Narasi:</strong> ${b.narrative_style || '-'}</p>
+                                <p><strong>Guidelines:</strong> ${b.guidelines || '-'}</p>
+                            </div>
+                            ${b.learned_patterns ? `
+                                <div class="text-[11px] bg-indigo-50/70 text-indigo-800 p-2.5 rounded-xl border border-indigo-100">
+                                    <strong><i class="ph-fill ph-sparkle"></i> Hasil Learning:</strong> ${b.learned_patterns}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <button onclick="triggerAutoLearn('${b.brand_name}', this)" class="apple-btn-secondary w-full py-2 text-xs flex items-center justify-center gap-1.5">
+                            <i class="ph ph-brain"></i> Pelajari dari Postingan Sebelumnya
+                        </button>
                     </div>
                 `;
             });
         }
 
         function openNewBrandForm() {
+            document.getElementById('brand-modal-title').innerText = "Tambah Brand Baru";
             document.getElementById('bc-id').value = '';
+            document.getElementById('bc-name').value = '';
+            document.getElementById('bc-niche').value = '';
+            document.getElementById('bc-mood').value = '';
+            document.getElementById('bc-tone').value = '';
+            document.getElementById('bc-audience').value = '';
+            document.getElementById('bc-narrative').value = '';
+            document.getElementById('bc-guidelines').value = '';
+            document.getElementById('bc-hooks').value = '';
+            document.getElementById('bc-hook').value = '';
             document.getElementById('brand-modal').classList.remove('hidden');
             document.getElementById('brand-modal').classList.add('flex');
         }
 
+        function editBrandForm(brandId) {
+            const b = state.brands.find(x => x.brand_id === brandId);
+            if (!b) return;
+            document.getElementById('brand-modal-title').innerText = `Edit DNA: ${b.brand_name}`;
+            document.getElementById('bc-id').value = b.brand_id;
+            document.getElementById('bc-name').value = b.brand_name || '';
+            document.getElementById('bc-niche').value = b.niche || '';
+            document.getElementById('bc-mood').value = b.mood || '';
+            document.getElementById('bc-tone').value = b.tone_of_voice || '';
+            document.getElementById('bc-audience').value = b.target_audience || '';
+            document.getElementById('bc-narrative').value = b.narrative_style || '';
+            document.getElementById('bc-guidelines').value = b.guidelines || '';
+            document.getElementById('bc-hooks').value = b.hook_formulas || '';
+            document.getElementById('bc-hook').value = b.product_or_core_hook || '';
+            document.getElementById('brand-modal').classList.remove('hidden');
+            document.getElementById('brand-modal').classList.add('flex');
+        }
+
+        function closeBrandModal() {
+            document.getElementById('brand-modal').classList.add('hidden');
+            document.getElementById('brand-modal').classList.remove('flex');
+        }
+
         async function submitBrandContext() {
-            await apiPost('save_brand_context', {
+            const brandName = document.getElementById('bc-name').value.trim();
+            if (!brandName) return showToast("Nama Brand wajib diisi!", true);
+
+            const btn = document.getElementById('btn-save-brand');
+            btn.innerText = "Menyimpan...";
+            btn.disabled = true;
+
+            const res = await apiPost('save_brand_context', {
                 payload: {
                     brand_id: document.getElementById('bc-id').value,
-                    brand_name: document.getElementById('bc-name').value,
+                    brand_name: brandName,
                     niche: document.getElementById('bc-niche').value,
-                    target_audience: document.getElementById('bc-audience').value,
+                    mood: document.getElementById('bc-mood').value,
                     tone_of_voice: document.getElementById('bc-tone').value,
+                    target_audience: document.getElementById('bc-audience').value,
+                    narrative_style: document.getElementById('bc-narrative').value,
+                    guidelines: document.getElementById('bc-guidelines').value,
+                    hook_formulas: document.getElementById('bc-hooks').value,
                     product_or_core_hook: document.getElementById('bc-hook').value
                 }
             });
-            document.getElementById('brand-modal').classList.add('hidden');
+
+            btn.innerText = "Simpan Brand DNA";
+            btn.disabled = false;
+
+            if (res.success) {
+                closeBrandModal();
+                showToast(`Brand DNA "${brandName}" berhasil disimpan!`);
+                await bootstrapApp();
+            } else {
+                showToast("Gagal menyimpan brand: " + res.error, true);
+            }
+        }
+
+        async function deleteBrandItem(brandId, brandName) {
+            await apiPost('delete_brand_context', { brandId });
+            showToast(`Brand "${brandName}" dihapus.`);
+            if (state.activeBrand === brandName) state.activeBrand = 'ALL';
             bootstrapApp();
+        }
+
+        async function triggerAutoLearn(brandName, btnEl) {
+            const orig = btnEl.innerHTML;
+            btnEl.innerText = "Menganalisis histori post...";
+            btnEl.disabled = true;
+            const res = await apiPost('learn_brand_style', { brandName });
+            btnEl.innerHTML = orig;
+            btnEl.disabled = false;
+
+            if (res.success) {
+                showToast(`Pola gaya bahasa ${brandName} berhasil dipelajari!`);
+                bootstrapApp();
+            } else {
+                showToast(res.error || "Belum ada data post untuk dipelajari.", true);
+            }
         }
 
         function updateAnalyticsKPI() {
