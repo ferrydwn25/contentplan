@@ -49,7 +49,7 @@
                     <span class="w-7 h-7 rounded-lg bg-gray-900 text-white flex items-center justify-center font-extrabold text-sm">*</span>
                     <h1 class="text-xl font-extrabold tracking-tight text-gray-900">ContentPlan<span class="text-blue-600">.</span></h1>
                 </div>
-                <button onclick="toggleMenu()" class="md:hidden text-gray-500 hover:bg-gray-100 p-2 rounded-lg"><i class="ph ph-x"></i></button>
+                <button type="button" onclick="toggleMenu()" class="md:hidden text-gray-500 hover:bg-gray-100 p-2 rounded-lg"><i class="ph ph-x"></i></button>
             </div>
             
             <!-- WORKSPACE / BRAND SWITCHER -->
@@ -77,10 +77,27 @@
             <a onclick="navigate('assets')" id="nav-assets" class="nav-item"><i class="ph ph-images text-lg"></i> Aset & Drive</a>
             <a onclick="navigate('settings')" id="nav-settings" class="nav-item"><i class="ph ph-gear text-lg"></i> Pengaturan & Slot</a>
 
-            <!-- QUICK OAUTH PANEL ("Posting ke") -->
+            <!-- QUICK OAUTH PANEL ("Posting ke") - Langsung Tampil & Diperbarui Otomatis -->
             <div class="mt-6 pt-4 border-t border-gray-100 px-1">
                 <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Posting ke (OAuth)</p>
-                <div class="space-y-2" id="sidebar-oauth-list"></div>
+                <div class="space-y-2" id="sidebar-oauth-list">
+                    <div class="flex items-center justify-between py-1 px-1">
+                        <span class="text-xs font-medium text-gray-600 flex items-center gap-2"><i class="ph ph-instagram-logo text-base"></i> Instagram</span>
+                        <button type="button" onclick="connectOAuthPlatform('Instagram')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
+                    </div>
+                    <div class="flex items-center justify-between py-1 px-1">
+                        <span class="text-xs font-medium text-gray-600 flex items-center gap-2"><i class="ph ph-tiktok-logo text-base"></i> TikTok</span>
+                        <button type="button" onclick="connectOAuthPlatform('TikTok')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
+                    </div>
+                    <div class="flex items-center justify-between py-1 px-1">
+                        <span class="text-xs font-medium text-gray-600 flex items-center gap-2"><i class="ph ph-at text-base"></i> Threads</span>
+                        <button type="button" onclick="connectOAuthPlatform('Threads')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
+                    </div>
+                    <div class="flex items-center justify-between py-1 px-1">
+                        <span class="text-xs font-medium text-gray-600 flex items-center gap-2"><i class="ph ph-youtube-logo text-base"></i> YouTube</span>
+                        <button type="button" onclick="connectOAuthPlatform('YouTube')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -96,7 +113,7 @@
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
         <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 md:px-8 py-3.5 flex items-center justify-between z-30 sticky top-0">
             <div class="flex items-center gap-3">
-                <button onclick="toggleMenu()" class="md:hidden text-gray-700 bg-gray-100 p-2 rounded-xl text-xl"><i class="ph ph-list"></i></button>
+                <button type="button" onclick="toggleMenu()" class="md:hidden text-gray-700 bg-gray-100 p-2 rounded-xl text-xl"><i class="ph ph-list"></i></button>
                 <div class="flex items-center gap-2 text-xs md:text-sm text-gray-500">
                     <i class="ph ph-house"></i> <span>/</span>
                     <span id="breadcrumb-brand" class="font-bold text-gray-800">All Brands</span>
@@ -105,15 +122,15 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="bootstrapApp()" class="apple-btn-secondary px-3 py-2 text-xs flex items-center gap-1.5"><i class="ph ph-arrows-clockwise"></i> <span class="hidden sm:inline">Sync</span></button>
-                <button onclick="openNewComposerPost()" class="bg-gray-900 hover:bg-black text-white rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-1.5 cursor-pointer"><i class="ph ph-plus"></i> Buat Post</button>
+                <button type="button" onclick="bootstrapApp()" class="apple-btn-secondary px-3 py-2 text-xs flex items-center gap-1.5"><i class="ph ph-arrows-clockwise"></i> <span class="hidden sm:inline">Sync</span></button>
+                <button type="button" onclick="openNewComposerPost()" class="bg-gray-900 hover:bg-black text-white rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-1.5 cursor-pointer"><i class="ph ph-plus"></i> Buat Post</button>
             </div>
         </header>
 
         <!-- OAUTH TOAST BANNER -->
         <div id="oauth-banner" class="hidden bg-blue-600 text-white text-xs font-bold px-6 py-2.5 flex justify-between items-center">
             <span id="oauth-banner-text"></span>
-            <button onclick="document.getElementById('oauth-banner').classList.add('hidden')" class="underline">Tutup</button>
+            <button type="button" onclick="document.getElementById('oauth-banner').classList.add('hidden')" class="underline">Tutup</button>
         </div>
 
         <!-- GLOBAL FLOATING TOAST -->
@@ -130,11 +147,11 @@
                     <div class="flex items-center gap-4">
                         <h2 id="cal-month-label" class="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900">November 2026</h2>
                         <div class="flex gap-1 bg-white border border-gray-200 rounded-full p-1 shadow-sm">
-                            <button onclick="changeCalMonth(-1)" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"><i class="ph ph-caret-left"></i></button>
-                            <button onclick="changeCalMonth(1)" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"><i class="ph ph-caret-right"></i></button>
+                            <button type="button" onclick="changeCalMonth(-1)" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"><i class="ph ph-caret-left"></i></button>
+                            <button type="button" onclick="changeCalMonth(1)" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"><i class="ph ph-caret-right"></i></button>
                         </div>
                     </div>
-                    <button onclick="navigate('settings')" class="apple-btn-secondary px-4 py-2 text-xs flex items-center gap-2">
+                    <button type="button" onclick="navigate('settings')" class="apple-btn-secondary px-4 py-2 text-xs flex items-center gap-2">
                         <i class="ph ph-clock"></i> Atur Slot Posting
                     </button>
                 </div>
@@ -189,7 +206,7 @@
                         <div onclick="togglePillar(this, 'Mitos vs Fakta')" class="pillar-card"><i class="ph ph-scales text-2xl mb-2 text-indigo-500"></i><h4 class="font-bold text-sm">Mitos vs Fakta</h4><p class="text-xs text-gray-500 mt-1">Bongkar teori & fakta</p></div>
                     </div>
 
-                    <button onclick="executeBatchGenerate()" id="btn-buat-batch" class="bg-gray-900 hover:bg-black text-white font-bold px-10 py-3.5 rounded-full text-sm transition shadow-lg cursor-pointer">Buat batch</button>
+                    <button type="button" onclick="executeBatchGenerate()" id="btn-buat-batch" class="bg-gray-900 hover:bg-black text-white font-bold px-10 py-3.5 rounded-full text-sm transition shadow-lg cursor-pointer">Buat batch</button>
                 </div>
             </div>
 
@@ -200,7 +217,7 @@
                     <div class="lg:col-span-3 apple-card p-4 space-y-3 max-h-[82vh] overflow-y-auto">
                         <div class="flex justify-between items-center border-b border-gray-100 pb-2.5">
                             <h3 class="font-bold text-sm text-gray-900">Antrean & Ide</h3>
-                            <button onclick="openNewComposerPost()" class="text-xs font-bold text-blue-600 hover:underline">+ Baru</button>
+                            <button type="button" onclick="openNewComposerPost()" class="text-xs font-bold text-blue-600 hover:underline">+ Baru</button>
                         </div>
                         <div id="composer-queue-list" class="space-y-2"></div>
                     </div>
@@ -221,7 +238,7 @@
                             <div class="flex items-center gap-1.5 text-xs font-bold text-indigo-700"><i class="ph-fill ph-sparkle"></i> Bikin dari ide — Ceritain post yang kamu mau...</div>
                             <div class="flex gap-2">
                                 <input type="text" id="comp-ai-prompt" class="apple-input bg-white text-xs py-2" placeholder="Contoh: Part 6 Bacon terjebak di ruang server...">
-                                <button onclick="runComposerAI()" id="btn-comp-ai" class="bg-gray-900 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-black">Generate</button>
+                                <button type="button" onclick="runComposerAI()" id="btn-comp-ai" class="bg-gray-900 text-white px-3.5 py-2 rounded-lg text-xs font-bold hover:bg-black cursor-pointer">Generate</button>
                             </div>
                         </div>
 
@@ -267,7 +284,7 @@
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label class="apple-label mb-0">Media / Thumbnail</label>
-                                <button onclick="navigate('assets')" class="text-[11px] font-bold text-blue-600 hover:underline">+ Upload Aset</button>
+                                <button type="button" onclick="navigate('assets')" class="text-[11px] font-bold text-blue-600 hover:underline">+ Upload Aset</button>
                             </div>
                             <select id="comp-asset-select" onchange="selectAssetForComposer()" class="apple-input text-xs mb-2"><option value="">-- Pilih dari Perpustakaan Aset --</option></select>
                             <input type="text" id="comp-thumb-url" oninput="updateLivePreview()" class="apple-input text-xs" placeholder="Atau paste URL gambar/thumbnail...">
@@ -279,8 +296,8 @@
                         </div>
 
                         <div class="flex flex-col sm:flex-row gap-2 pt-3 border-t border-gray-100">
-                            <button onclick="submitComposerPost(false)" id="btn-save-manual" class="apple-btn-secondary flex-1 py-2.5">Simpan Jadwal Ini</button>
-                            <button onclick="submitComposerPost(true)" id="btn-save-queue" class="bg-gray-900 hover:bg-black text-white rounded-xl flex-1 py-2.5 text-xs font-bold cursor-pointer"><i class="ph ph-calendar-plus"></i> Jadwalkan ke Slot Berikutnya</button>
+                            <button type="button" onclick="submitComposerPost(false)" id="btn-save-manual" class="apple-btn-secondary flex-1 py-2.5">Simpan Jadwal Ini</button>
+                            <button type="button" onclick="submitComposerPost(true)" id="btn-save-queue" class="bg-gray-900 hover:bg-black text-white rounded-xl flex-1 py-2.5 text-xs font-bold cursor-pointer"><i class="ph ph-calendar-plus"></i> Jadwalkan ke Slot Berikutnya</button>
                         </div>
                     </div>
 
@@ -329,8 +346,8 @@
                         <p class="text-xs text-gray-500">Balas komentar dari YouTube, TikTok, Instagram, dan Threads dalam satu antrean.</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="setInboxFilter('Unreplied')" id="tab-inbox-unreplied" class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold">Belum dibales</button>
-                        <button onclick="setInboxFilter('Replied')" id="tab-inbox-replied" class="apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold">Sudah dibales</button>
+                        <button type="button" onclick="setInboxFilter('Unreplied')" id="tab-inbox-unreplied" class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold">Belum dibales</button>
+                        <button type="button" onclick="setInboxFilter('Replied')" id="tab-inbox-replied" class="apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold">Sudah dibales</button>
                     </div>
                 </div>
                 <div id="inbox-list-container" class="space-y-3"></div>
@@ -393,7 +410,7 @@
                         <div class="flex items-center gap-2">
                             <select id="slot-brand-filter" onchange="renderSlotMatrix()" class="apple-input py-2 text-xs font-bold w-40"></select>
                             <input type="time" id="new-slot-time" value="19:00" class="apple-input py-2 text-xs w-28">
-                            <button onclick="createNewSlot()" class="apple-btn px-4 py-2 text-xs whitespace-nowrap">+ Tambah jam</button>
+                            <button type="button" onclick="createNewSlot()" class="apple-btn px-4 py-2 text-xs whitespace-nowrap">+ Tambah jam</button>
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -511,7 +528,6 @@
             }, 3500);
         }
 
-        // Pembersih format jam agar tidak pernah menampilkan 1899-12-30
         function cleanTimeStr(val, fallback = '19:00') {
             if (!val) return fallback;
             const s = String(val).trim();
@@ -524,7 +540,305 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-// ... existing code ... -->
+            // Render UI dasar seketika agar OAuth bar & Kalender selalu tampil sebelum sync selesai
+            renderSidebarOAuth();
+            renderSettingsOAuthCards();
+            renderCalendar();
+
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('oauth_success')) {
+                const banner = document.getElementById('oauth-banner');
+                document.getElementById('oauth-banner-text').innerText = `✓ Akun ${params.get('oauth_success')} berhasil terhubung via OAuth 2.0!`;
+                banner.classList.remove('hidden');
+                window.history.replaceState({}, document.title, "/");
+            } else if (params.get('oauth_error')) {
+                const banner = document.getElementById('oauth-banner');
+                banner.className = "bg-red-600 text-white text-xs font-bold px-6 py-2.5 flex justify-between items-center";
+                document.getElementById('oauth-banner-text').innerText = `Info OAuth: ${params.get('oauth_error')} (Set Environment Variable di Vercel)`;
+                banner.classList.remove('hidden');
+                window.history.replaceState({}, document.title, "/");
+            }
+            bootstrapApp();
+        });
+
+        async function bootstrapApp() {
+            const dot = document.getElementById('sync-status-dot');
+            const statusText = document.getElementById('sync-status-text');
+            if (statusText) statusText.innerText = "Syncing Sheets...";
+
+            const res = await apiGet('bootstrap');
+            if (!res.success) {
+                if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-500";
+                if (statusText) statusText.innerText = "GAS Offline / Cek ENV";
+                refreshAllViews();
+                return;
+            }
+
+            if (dot) dot.className = "w-2 h-2 rounded-full bg-green-500";
+            if (statusText) statusText.innerText = "Vercel Edge Live";
+
+            state.brands = res.brands || [];
+            state.slots = res.slots || [];
+            state.contents = res.contents || [];
+            state.assets = res.assets || [];
+            state.connections = res.connections || [];
+            state.inbox = res.inbox || [];
+
+            populateBrandDropdowns();
+            populateComposerAssetDropdown();
+            refreshAllViews();
+        }
+
+        function navigate(viewName) {
+            ALL_VIEWS.forEach(v => {
+                const nav = document.getElementById('nav-' + v);
+                if (nav && v !== 'swipe') nav.classList.remove('nav-active');
+                const view = document.getElementById('view-' + v);
+                if (view) view.classList.add('hidden');
+            });
+            const activeNav = document.getElementById('nav-' + viewName);
+            if (activeNav && viewName !== 'swipe') activeNav.classList.add('nav-active');
+            const targetView = document.getElementById('view-' + viewName);
+            if (targetView) targetView.classList.remove('hidden');
+
+            const titles = {
+                swipe: 'Swipe (Batch AI)', calendar: 'Kalender', composer: 'Buat Post', inbox: 'Balasan',
+                analytics: 'Analitik', assets: 'Aset', brandcontext: 'Learning & Brand DNA', settings: 'Pengaturan'
+            };
+            document.getElementById('header-title').innerText = titles[viewName] || viewName;
+            if (window.innerWidth < 768 && !document.getElementById('sidebar').classList.contains('-translate-x-full')) {
+                toggleMenu();
+            }
+        }
+
+        function toggleMenu() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('drawer-overlay').classList.toggle('hidden');
+        }
+
+        function populateBrandDropdowns() {
+            const ids = ['global-brand-switcher', 'swipe-brand', 'slot-brand-filter', 'comp-brand'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = id === 'global-brand-switcher' ? '<option value="ALL">🌐 All Brands</option>' : '';
+                state.brands.forEach(b => {
+                    el.innerHTML += `<option value="${b.brand_name}">${b.brand_name}</option>`;
+                });
+            });
+            document.getElementById('global-brand-switcher').value = state.activeBrand;
+        }
+
+        function switchBrandWorkspace() {
+            state.activeBrand = document.getElementById('global-brand-switcher').value;
+            document.getElementById('breadcrumb-brand').innerText = state.activeBrand === 'ALL' ? 'All Brands' : state.activeBrand;
+            if (state.activeBrand !== 'ALL') {
+                ['swipe-brand', 'slot-brand-filter', 'comp-brand'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = state.activeBrand;
+                });
+            }
+            refreshAllViews();
+        }
+
+        function getFilteredContents() {
+            return state.activeBrand === 'ALL' ? state.contents : state.contents.filter(c => c.brand_name === state.activeBrand);
+        }
+
+        function refreshAllViews() {
+            renderCalendar();
+            renderComposerQueue();
+            renderSidebarOAuth();
+            renderSettingsOAuthCards();
+            renderUnifiedInbox();
+            renderSlotMatrix();
+            renderBrandContextCards();
+            renderAssetsGallery();
+            updateAnalyticsKPI();
+            updateLivePreview();
+            updateSwipeDNAIndicator();
+        }
+
+        function updateSwipeDNAIndicator() {
+            const el = document.getElementById('swipe-dna-indicator');
+            const sel = document.getElementById('swipe-brand');
+            if (!el || !sel) return;
+            const b = state.brands.find(x => x.brand_name === sel.value);
+            if (b) {
+                el.innerHTML = `<i class="ph-fill ph-brain"></i> DNA Aktif: ${b.brand_name} • Mood: ${b.mood || b.tone_of_voice || 'Default'}`;
+            }
+        }
+
+        // --- OAUTH CONNECTIONS ("Posting ke") ---
+        function connectOAuthPlatform(platform) {
+            const targetBrand = state.activeBrand === 'ALL'
+                ? (state.brands[0] ? state.brands[0].brand_name : 'Bacon Files')
+                : state.activeBrand;
+            window.location.href = `/api/oauth?action=connect&platform=${encodeURIComponent(platform)}&brand=${encodeURIComponent(targetBrand)}`;
+        }
+
+        async function disconnectOAuth(connId) {
+            await apiPost('disconnect_oauth', { connId });
+            showToast("Koneksi OAuth diputuskan.");
+            bootstrapApp();
+        }
+
+        function renderSidebarOAuth() {
+            const container = document.getElementById('sidebar-oauth-list');
+            if (!container) return;
+            const platforms = [
+                { name: 'Instagram', icon: 'ph-instagram-logo' },
+                { name: 'TikTok', icon: 'ph-tiktok-logo' },
+                { name: 'Threads', icon: 'ph-at' },
+                { name: 'YouTube', icon: 'ph-youtube-logo' }
+            ];
+            container.innerHTML = '';
+
+            platforms.forEach(p => {
+                const conn = state.connections.find(c =>
+                    c.platform === p.name && (state.activeBrand === 'ALL' || c.brand_name === state.activeBrand)
+                );
+                if (conn) {
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between py-1 px-1">
+                            <span class="text-xs font-semibold text-gray-700 flex items-center gap-2"><i class="ph ${p.icon} text-base"></i> ${p.name}</span>
+                            <span class="text-[10px] font-bold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">Terhubung</span>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML += `
+                        <div class="flex items-center justify-between py-1 px-1">
+                            <span class="text-xs font-medium text-gray-600 flex items-center gap-2"><i class="ph ${p.icon} text-base"></i> ${p.name}</span>
+                            <button type="button" onclick="connectOAuthPlatform('${p.name}')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function renderSettingsOAuthCards() {
+            const container = document.getElementById('settings-oauth-cards');
+            if (!container) return;
+            const platforms = ['Instagram', 'TikTok', 'Threads', 'YouTube'];
+            container.innerHTML = '';
+
+            platforms.forEach(p => {
+                const conn = state.connections.find(c =>
+                    c.platform === p && (state.activeBrand === 'ALL' || c.brand_name === state.activeBrand)
+                );
+                container.innerHTML += `
+                    <div class="apple-card p-6 flex flex-col justify-between gap-4">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-base text-gray-900">Koneksi ${p}</h4>
+                            ${conn
+                                ? `<button type="button" onclick="disconnectOAuth('${conn.conn_id}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">Putuskan (${conn.username})</button>`
+                                : `<button type="button" onclick="connectOAuthPlatform('${p}')" class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold cursor-pointer">Hubungkan ${p}</button>`
+                            }
+                        </div>
+                        <p class="text-xs text-gray-500 leading-relaxed">
+                            Sekali tersambung via OAuth 2.0 Vercel, sistem otomatis mem-publish post berstatus <strong>Ready</strong> sesuai slot jadwal Anda.
+                        </p>
+                    </div>
+                `;
+            });
+        }
+
+        // --- UNIFIED INBOX ("Balasan") ---
+        function setInboxFilter(status) {
+            state.inboxFilter = status;
+            document.getElementById('tab-inbox-unreplied').className = status === 'Unreplied'
+                ? 'bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold'
+                : 'apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold';
+            document.getElementById('tab-inbox-replied').className = status === 'Replied'
+                ? 'bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold'
+                : 'apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold';
+            renderUnifiedInbox();
+        }
+
+        function renderUnifiedInbox() {
+            const container = document.getElementById('inbox-list-container');
+            const badge = document.getElementById('inbox-badge');
+            if (!container) return;
+
+            const brandFiltered = state.activeBrand === 'ALL' ? state.inbox : state.inbox.filter(m => m.brand_name === state.activeBrand);
+            const unrepliedCount = brandFiltered.filter(m => m.status === 'Unreplied').length;
+
+            if (badge) {
+                if (unrepliedCount > 0) {
+                    badge.innerText = unrepliedCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+
+            const list = brandFiltered.filter(m => m.status === state.inboxFilter);
+            container.innerHTML = '';
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="apple-card p-12 text-center">
+                        <h4 class="font-bold text-base text-gray-900">Antrean kosong</h4>
+                        <p class="text-xs text-gray-500 mt-1">Belum ada balasan baru di kategori ini.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.forEach(m => {
+                container.innerHTML += `
+                    <div class="apple-card p-5 space-y-3">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-gray-900">${m.sender_username} <span class="text-gray-400 font-normal">di ${m.platform} (${m.brand_name})</span></span>
+                            <span class="text-gray-400">${String(m.received_at).split('T')[0]}</span>
+                        </div>
+                        <p class="text-sm text-gray-800 bg-gray-50 p-3 rounded-xl">"${m.comment_text}"</p>
+                        ${m.status === 'Unreplied' ? `
+                            <div class="flex gap-2">
+                                <input type="text" id="reply-input-${m.msg_id}" class="apple-input text-xs" placeholder="Tulis balasan Anda...">
+                                <button type="button" onclick="sendInboxReply('${m.msg_id}')" class="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">Balas</button>
+                            </div>
+                        ` : `
+                            <p class="text-xs text-green-700 font-semibold">✓ Dibalas: "${m.reply_text}"</p>
+                        `}
+                    </div>
+                `;
+            });
+        }
+
+        async function sendInboxReply(msgId) {
+            const input = document.getElementById(`reply-input-${msgId}`);
+            if (!input || !input.value.trim()) return;
+            await apiPost('reply_inbox', { msgId, replyText: input.value.trim() });
+            showToast("Balasan terkirim!");
+            bootstrapApp();
+        }
+
+        // --- KALENDER & QUEUE SLOTS ---
+        function changeCalMonth(delta) {
+            state.calMonth += delta;
+            if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
+            if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            document.getElementById('cal-month-label').innerText = `${monthNames[state.calMonth]} ${state.calYear}`;
+            const grid = document.getElementById('calendar-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const firstDay = new Date(state.calYear, state.calMonth, 1).getDay();
+            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+            const daysInMonth = new Date(state.calYear, state.calMonth + 1, 0).getDate();
+            const dayKeys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+            const filteredContents = getFilteredContents();
+            const activeSlots = state.activeBrand === 'ALL' ? state.slots : state.slots.filter(s => s.brand_name === state.activeBrand);
+
+            for (let i = 0; i < startOffset; i++) grid.innerHTML += `<div class="cal-cell bg-gray-50/50"></div>`;
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const fullDate = `${state.calYear}-${String(state.calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayKey = dayKeys[(startOffset + day - 1) % 7];
@@ -554,389 +868,6 @@
                 grid.innerHTML += `<div class="cal-cell"><div class="text-xs font-bold text-gray-800 mb-1">${day}</div>${htmlEvents}</div>`;
             }
         }
-// ... existing code ... -->
-        // --- COMPOSER & LIVE PREVIEW ---
-        function renderComposerQueue() {
-            const container = document.getElementById('composer-queue-list');
-            if (!container) return;
-            const list = getFilteredContents().filter(c => c.content_status !== 'Published');
-            container.innerHTML = list.length === 0 ? `<p class="text-xs text-gray-400 text-center py-6">Antrean kosong.</p>` : '';
-            list.forEach(c => {
-                const tClean = cleanTimeStr(c.scheduled_time, '');
-                container.innerHTML += `
-                    <div class="p-3 rounded-xl border border-gray-100 hover:border-blue-400 bg-gray-50 flex items-start justify-between gap-2 group">
-                        <div onclick="editPostInComposer('${c.content_id}')" class="flex-1 min-w-0 cursor-pointer">
-                            <div class="flex justify-between text-[10px] font-bold text-gray-400 mb-1"><span>${c.platform}</span><span>${String(c.scheduled_date).split('T')[0]} ${tClean}</span></div>
-                            <p class="text-xs font-bold text-gray-900 line-clamp-2">${c.content_title}</p>
-                        </div>
-                        <button type="button" onclick="deletePostById('${c.content_id}')" class="text-gray-400 hover:text-red-600 p-1 cursor-pointer" title="Hapus post"><i class="ph ph-trash text-sm"></i></button>
-                    </div>
-                `;
-            });
-        }
-
-        function openNewComposerPost() {
-            document.getElementById('comp-mode-title').innerText = "Buat post";
-            document.getElementById('comp-id').value = "";
-            document.getElementById('btn-comp-delete').classList.add('hidden');
-            document.getElementById('comp-title').value = "";
-            document.getElementById('comp-caption').value = "";
-            document.getElementById('comp-thumb-url').value = "";
-            document.getElementById('comp-status').value = "Ready";
-            document.getElementById('comp-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('comp-time').value = "19:00";
-            if (state.activeBrand !== 'ALL') document.getElementById('comp-brand').value = state.activeBrand;
-            updateLivePreview();
-            navigate('composer');
-        }
-
-        function openComposerForSlot(dateStr, timeStr, brandName) {
-            openNewComposerPost();
-            document.getElementById('comp-date').value = dateStr;
-            document.getElementById('comp-time').value = cleanTimeStr(timeStr, "19:00");
-            if (brandName) document.getElementById('comp-brand').value = brandName;
-            updateLivePreview();
-        }
-
-        function editPostInComposer(contentId) {
-            const c = state.contents.find(x => x.content_id === contentId);
-            if (!c) return;
-            document.getElementById('comp-mode-title').innerText = "Edit post";
-            document.getElementById('comp-id').value = c.content_id;
-            document.getElementById('btn-comp-delete').classList.remove('hidden');
-            if (c.brand_name) document.getElementById('comp-brand').value = c.brand_name;
-            document.getElementById('comp-platform').value = c.platform || "YouTube";
-            document.getElementById('comp-pillar').value = c.content_pillar || "Edukasi";
-            document.getElementById('comp-status').value = c.content_status || "Ready";
-            document.getElementById('comp-title').value = c.content_title || "";
-            document.getElementById('comp-caption').value = c.caption || "";
-            document.getElementById('comp-thumb-url').value = c.thumbnail_url || "";
-            document.getElementById('comp-date').value = String(c.scheduled_date).split('T')[0];
-            document.getElementById('comp-time').value = cleanTimeStr(c.scheduled_time, "19:00");
-            updateLivePreview();
-            navigate('composer');
-        }
-
-        async function deletePostById(contentId) {
-            if (!contentId) return;
-            const res = await apiPost('delete_post', { contentId });
-            if (res.success) {
-                showToast("Postingan berhasil dihapus!");
-                if (document.getElementById('comp-id').value === contentId) {
-                    openNewComposerPost();
-                }
-                bootstrapApp();
-            } else {
-                showToast("Gagal menghapus post: " + (res.error || "Error"), true);
-            }
-        }
-
-        function deleteCurrentComposerPost() {
-            const id = document.getElementById('comp-id').value;
-            if (id) deletePostById(id);
-        }
-        }
-
-        async function bootstrapApp() {
-            const dot = document.getElementById('sync-status-dot');
-            const statusText = document.getElementById('sync-status-text');
-            if (statusText) statusText.innerText = "Syncing Sheets...";
-
-            const res = await apiGet('bootstrap');
-            if (!res.success) {
-                if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-500";
-                if (statusText) statusText.innerText = "GAS Offline / Cek ENV";
-                showToast("Info Koneksi GAS: " + (res.error || "Gagal memuat data"), true);
-                return;
-            }
-
-            if (dot) dot.className = "w-2 h-2 rounded-full bg-green-500";
-            if (statusText) statusText.innerText = "Vercel Edge Live";
-
-            state.brands = res.brands || [];
-            state.slots = res.slots || [];
-            state.contents = res.contents || [];
-            state.assets = res.assets || [];
-            state.connections = res.connections || [];
-            state.inbox = res.inbox || [];
-
-            populateBrandDropdowns();
-            populateComposerAssetDropdown();
-            refreshAllViews();
-        }
-
-        function navigate(viewName) {
-            ALL_VIEWS.forEach(v => {
-                const nav = document.getElementById('nav-' + v);
-                if (nav && v !== 'swipe') nav.classList.remove('nav-active');
-                const view = document.getElementById('view-' + v);
-                if (view) view.classList.add('hidden');
-            });
-            const activeNav = document.getElementById('nav-' + viewName);
-            if (activeNav && viewName !== 'swipe') activeNav.classList.add('nav-active');
-            const targetView = document.getElementById('view-' + viewName);
-            if (targetView) targetView.classList.remove('hidden');
-
-            const titles = {
-                swipe: 'Swipe (Batch AI)', calendar: 'Kalender', composer: 'Buat Post', inbox: 'Balasan',
-                analytics: 'Analitik', assets: 'Aset', brandcontext: 'Learning & Brand DNA', settings: 'Pengaturan'
-            };
-            document.getElementById('header-title').innerText = titles[viewName] || viewName;
-            if (window.innerWidth < 768 && !document.getElementById('sidebar').classList.contains('-translate-x-full')) {
-                toggleMenu();
-            }
-        }
-
-        function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
-            document.getElementById('drawer-overlay').classList.toggle('hidden');
-        }
-
-        function populateBrandDropdowns() {
-            const ids = ['global-brand-switcher', 'swipe-brand', 'slot-brand-filter', 'comp-brand'];
-            ids.forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.innerHTML = id === 'global-brand-switcher' ? '<option value="ALL">🌐 All Brands</option>' : '';
-                state.brands.forEach(b => {
-                    el.innerHTML += `<option value="${b.brand_name}">${b.brand_name}</option>`;
-                });
-            });
-            document.getElementById('global-brand-switcher').value = state.activeBrand;
-        }
-
-        function switchBrandWorkspace() {
-            state.activeBrand = document.getElementById('global-brand-switcher').value;
-            document.getElementById('breadcrumb-brand').innerText = state.activeBrand === 'ALL' ? 'All Brands' : state.activeBrand;
-            if (state.activeBrand !== 'ALL') {
-                ['swipe-brand', 'slot-brand-filter', 'comp-brand'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.value = state.activeBrand;
-                });
-            }
-            refreshAllViews();
-        }
-
-        function getFilteredContents() {
-            return state.activeBrand === 'ALL' ? state.contents : state.contents.filter(c => c.brand_name === state.activeBrand);
-        }
-
-        function refreshAllViews() {
-            renderCalendar();
-            renderComposerQueue();
-            renderSidebarOAuth();
-            renderSettingsOAuthCards();
-            renderUnifiedInbox();
-            renderSlotMatrix();
-            renderBrandContextCards();
-            renderAssetsGallery();
-            updateAnalyticsKPI();
-            updateLivePreview();
-            updateSwipeDNAIndicator();
-        }
-
-        function updateSwipeDNAIndicator() {
-            const el = document.getElementById('swipe-dna-indicator');
-            const sel = document.getElementById('swipe-brand');
-            if (!el || !sel) return;
-            const b = state.brands.find(x => x.brand_name === sel.value);
-            if (b) {
-                el.innerHTML = `<i class="ph-fill ph-brain"></i> DNA Aktif: ${b.brand_name} • Mood: ${b.mood || b.tone_of_voice || 'Default'}`;
-            }
-        }
-
-        // --- OAUTH CONNECTIONS ("Posting ke") ---
-        function connectOAuthPlatform(platform) {
-            const targetBrand = state.activeBrand === 'ALL'
-                ? (state.brands[0] ? state.brands[0].brand_name : 'Bacon Files')
-                : state.activeBrand;
-            window.location.href = `/api/oauth?action=connect&platform=${encodeURIComponent(platform)}&brand=${encodeURIComponent(targetBrand)}`;
-        }
-
-        async function disconnectOAuth(connId) {
-            await apiPost('disconnect_oauth', { connId });
-            showToast("Koneksi OAuth diputuskan.");
-            bootstrapApp();
-        }
-
-        function renderSidebarOAuth() {
-            const container = document.getElementById('sidebar-oauth-list');
-            if (!container) return;
-            const platforms = [
-                { name: 'Instagram', icon: 'ph-instagram-logo' },
-                { name: 'TikTok', icon: 'ph-tiktok-logo' },
-                { name: 'Threads', icon: 'ph-at' },
-                { name: 'YouTube', icon: 'ph-youtube-logo' }
-            ];
-            container.innerHTML = '';
-
-            platforms.forEach(p => {
-                const conn = state.connections.find(c =>
-                    c.platform === p.name && (state.activeBrand === 'ALL' || c.brand_name === state.activeBrand)
-                );
-                if (conn) {
-                    container.innerHTML += `
-                        <div class="flex items-center justify-between py-1 px-1">
-                            <span class="text-xs font-semibold text-gray-700 flex items-center gap-2"><i class="ph ${p.icon} text-base"></i> ${p.name}</span>
-                            <span class="text-[10px] font-bold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">Terhubung</span>
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML += `
-                        <div class="flex items-center justify-between py-1 px-1">
-                            <span class="text-xs font-medium text-gray-500 flex items-center gap-2"><i class="ph ${p.icon} text-base"></i> ${p.name}</span>
-                            <button type="button" onclick="connectOAuthPlatform('${p.name}')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
-                        </div>
-                    `;
-                }
-            });
-        }
-
-        function renderSettingsOAuthCards() {
-            const container = document.getElementById('settings-oauth-cards');
-            if (!container) return;
-            const platforms = ['Instagram', 'TikTok', 'Threads', 'YouTube'];
-            container.innerHTML = '';
-
-            platforms.forEach(p => {
-                const conn = state.connections.find(c =>
-                    c.platform === p && (state.activeBrand === 'ALL' || c.brand_name === state.activeBrand)
-                );
-                container.innerHTML += `
-                    <div class="apple-card p-6 flex flex-col justify-between gap-4">
-                        <div class="flex justify-between items-center">
-                            <h4 class="font-bold text-base text-gray-900">Koneksi ${p}</h4>
-                            ${conn
-                                ? `<button type="button" onclick="disconnectOAuth('${conn.conn_id}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">Putuskan (${conn.username})</button>`
-                                : `<button type="button" onclick="connectOAuthPlatform('${p}')" class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold cursor-pointer">Hubungkan ${p}</button>`
-                            }
-                        </div>
-                        <p class="text-xs text-gray-500 leading-relaxed">
-                            Sekali tersambung via OAuth 2.0 Vercel, sistem otomatis mem-publish post berstatus <strong>Ready</strong> sesuai slot jadwal Anda.
-                        </p>
-                    </div>
-                `;
-            });
-        }
-
-        // --- UNIFIED INBOX ("Balasan") ---
-        function setInboxFilter(status) {
-            state.inboxFilter = status;
-            document.getElementById('tab-inbox-unreplied').className = status === 'Unreplied'
-                ? 'bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold'
-                : 'apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold';
-            document.getElementById('tab-inbox-replied').className = status === 'Replied'
-                ? 'bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold'
-                : 'apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold';
-            renderUnifiedInbox();
-        }
-
-        function renderUnifiedInbox() {
-            const container = document.getElementById('inbox-list-container');
-            const badge = document.getElementById('inbox-badge');
-            if (!container) return;
-
-            const brandFiltered = state.activeBrand === 'ALL' ? state.inbox : state.inbox.filter(m => m.brand_name === state.activeBrand);
-            const unrepliedCount = brandFiltered.filter(m => m.status === 'Unreplied').length;
-
-            if (badge) {
-                if (unrepliedCount > 0) {
-                    badge.innerText = unrepliedCount;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
-            }
-
-            const list = brandFiltered.filter(m => m.status === state.inboxFilter);
-            container.innerHTML = '';
-
-            if (list.length === 0) {
-                container.innerHTML = `
-                    <div class="apple-card p-12 text-center">
-                        <h4 class="font-bold text-base text-gray-900">Antrean kosong</h4>
-                        <p class="text-xs text-gray-500 mt-1">Belum ada balasan baru di kategori ini.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            list.forEach(m => {
-                container.innerHTML += `
-                    <div class="apple-card p-5 space-y-3">
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="font-bold text-gray-900">${m.sender_username} <span class="text-gray-400 font-normal">di ${m.platform} (${m.brand_name})</span></span>
-                            <span class="text-gray-400">${String(m.received_at).split('T')[0]}</span>
-                        </div>
-                        <p class="text-sm text-gray-800 bg-gray-50 p-3 rounded-xl">"${m.comment_text}"</p>
-                        ${m.status === 'Unreplied' ? `
-                            <div class="flex gap-2">
-                                <input type="text" id="reply-input-${m.msg_id}" class="apple-input text-xs" placeholder="Tulis balasan Anda...">
-                                <button onclick="sendInboxReply('${m.msg_id}')" class="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold">Balas</button>
-                            </div>
-                        ` : `
-                            <p class="text-xs text-green-700 font-semibold">✓ Dibalas: "${m.reply_text}"</p>
-                        `}
-                    </div>
-                `;
-            });
-        }
-
-        async function sendInboxReply(msgId) {
-            const input = document.getElementById(`reply-input-${msgId}`);
-            if (!input || !input.value.trim()) return;
-            await apiPost('reply_inbox', { msgId, replyText: input.value.trim() });
-            showToast("Balasan terkirim!");
-            bootstrapApp();
-        }
-
-        // --- KALENDER & QUEUE SLOTS ---
-        function changeCalMonth(delta) {
-            state.calMonth += delta;
-            if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
-            if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
-            renderCalendar();
-        }
-
-        function renderCalendar() {
-            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-            document.getElementById('cal-month-label').innerText = `${monthNames[state.calMonth]} ${state.calYear}`;
-            const grid = document.getElementById('calendar-grid');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            const firstDay = new Date(state.calYear, state.calMonth, 1).getDay();
-            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-            const daysInMonth = new Date(state.calYear, state.calMonth + 1, 0).getDate();
-            const dayKeys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-
-            const filteredContents = getFilteredContents();
-            const activeSlots = state.activeBrand === 'ALL' ? state.slots : state.slots.filter(s => s.brand_name === state.activeBrand);
-
-            for (let i = 0; i < startOffset; i++) grid.innerHTML += `<div class="cal-cell bg-gray-50/50"></div>`;
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const fullDate = `${state.calYear}-${String(state.calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dayKey = dayKeys[(startOffset + day - 1) % 7];
-                const dayContents = filteredContents.filter(c => String(c.scheduled_date).startsWith(fullDate));
-                let htmlEvents = '';
-
-                dayContents.forEach(c => {
-                    htmlEvents += `<div onclick="editPostInComposer('${c.content_id}')" class="cal-event">${c.scheduled_time || ''} · ${c.content_title}</div>`;
-                });
-
-                activeSlots.forEach(slot => {
-                    if (String(slot[dayKey]) === "TRUE") {
-                        const isFilled = dayContents.some(c => c.scheduled_time === slot.time_slot && c.brand_name === slot.brand_name);
-                        if (!isFilled) {
-                            htmlEvents += `<div onclick="openComposerForSlot('${fullDate}', '${slot.time_slot}', '${slot.brand_name}')" class="slot-pill">Slot ${slot.time_slot}</div>`;
-                        }
-                    }
-                });
-
-                grid.innerHTML += `<div class="cal-cell"><div class="text-xs font-bold text-gray-800 mb-1">${day}</div>${htmlEvents}</div>`;
-            }
-        }
 
         // --- SWIPE BATCH GENERATOR ---
         function togglePillar(el, pillarName) {
@@ -1014,7 +945,6 @@
             if (brandName) document.getElementById('comp-brand').value = brandName;
             updateLivePreview();
         }
-
         function editPostInComposer(contentId) {
             const c = state.contents.find(x => x.content_id === contentId);
             if (!c) return;
@@ -1051,398 +981,6 @@
         function deleteCurrentComposerPost() {
             const id = document.getElementById('comp-id').value;
             if (id) deletePostById(id);
-        }
-        }
-
-        async function bootstrapApp() {
-            const dot = document.getElementById('sync-status-dot');
-            const statusText = document.getElementById('sync-status-text');
-            if (statusText) statusText.innerText = "Syncing Sheets...";
-
-            const res = await apiGet('bootstrap');
-            if (!res.success) {
-                if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-500";
-                if (statusText) statusText.innerText = "GAS Offline / Cek ENV";
-                showToast("Info Koneksi GAS: " + (res.error || "Gagal memuat data"), true);
-                return;
-            }
-
-            if (dot) dot.className = "w-2 h-2 rounded-full bg-green-500";
-            if (statusText) statusText.innerText = "Vercel Edge Live";
-
-            state.brands = res.brands || [];
-            state.slots = res.slots || [];
-            state.contents = res.contents || [];
-            state.assets = res.assets || [];
-            state.connections = res.connections || [];
-            state.inbox = res.inbox || [];
-
-            populateBrandDropdowns();
-            populateComposerAssetDropdown();
-            refreshAllViews();
-        }
-
-        function navigate(viewName) {
-            ALL_VIEWS.forEach(v => {
-                const nav = document.getElementById('nav-' + v);
-                if (nav && v !== 'swipe') nav.classList.remove('nav-active');
-                const view = document.getElementById('view-' + v);
-                if (view) view.classList.add('hidden');
-            });
-            const activeNav = document.getElementById('nav-' + viewName);
-            if (activeNav && viewName !== 'swipe') activeNav.classList.add('nav-active');
-            const targetView = document.getElementById('view-' + viewName);
-            if (targetView) targetView.classList.remove('hidden');
-
-            const titles = {
-                swipe: 'Swipe (Batch AI)', calendar: 'Kalender', composer: 'Buat Post', inbox: 'Balasan',
-                analytics: 'Analitik', assets: 'Aset', brandcontext: 'Learning & Brand DNA', settings: 'Pengaturan'
-            };
-            document.getElementById('header-title').innerText = titles[viewName] || viewName;
-            if (window.innerWidth < 768 && !document.getElementById('sidebar').classList.contains('-translate-x-full')) {
-                toggleMenu();
-            }
-        }
-
-        function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('-translate-x-full');
-            document.getElementById('drawer-overlay').classList.toggle('hidden');
-        }
-
-        function populateBrandDropdowns() {
-            const ids = ['global-brand-switcher', 'swipe-brand', 'slot-brand-filter', 'comp-brand'];
-            ids.forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.innerHTML = id === 'global-brand-switcher' ? '<option value="ALL">🌐 All Brands</option>' : '';
-                state.brands.forEach(b => {
-                    el.innerHTML += `<option value="${b.brand_name}">${b.brand_name}</option>`;
-                });
-            });
-            document.getElementById('global-brand-switcher').value = state.activeBrand;
-        }
-
-        function switchBrandWorkspace() {
-            state.activeBrand = document.getElementById('global-brand-switcher').value;
-            document.getElementById('breadcrumb-brand').innerText = state.activeBrand === 'ALL' ? 'All Brands' : state.activeBrand;
-            if (state.activeBrand !== 'ALL') {
-                ['swipe-brand', 'slot-brand-filter', 'comp-brand'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.value = state.activeBrand;
-                });
-            }
-            refreshAllViews();
-        }
-
-        function getFilteredContents() {
-            return state.activeBrand === 'ALL' ? state.contents : state.contents.filter(c => c.brand_name === state.activeBrand);
-        }
-
-        function refreshAllViews() {
-            renderCalendar();
-            renderComposerQueue();
-            renderSidebarOAuth();
-            renderSettingsOAuthCards();
-            renderUnifiedInbox();
-            renderSlotMatrix();
-            renderBrandContextCards();
-            renderAssetsGallery();
-            updateAnalyticsKPI();
-            updateLivePreview();
-            updateSwipeDNAIndicator();
-        }
-
-        function updateSwipeDNAIndicator() {
-            const el = document.getElementById('swipe-dna-indicator');
-            const sel = document.getElementById('swipe-brand');
-            if (!el || !sel) return;
-            const b = state.brands.find(x => x.brand_name === sel.value);
-            if (b) {
-                el.innerHTML = `<i class="ph-fill ph-brain"></i> DNA Aktif: ${b.brand_name} • Mood: ${b.mood || b.tone_of_voice || 'Default'}`;
-            }
-        }
-
-        // --- OAUTH CONNECTIONS ("Posting ke") ---
-        function connectOAuthPlatform(platform) {
-            const targetBrand = state.activeBrand === 'ALL'
-                ? (state.brands[0] ? state.brands[0].brand_name : 'Bacon Files')
-                : state.activeBrand;
-            window.location.href = `/api/oauth?action=connect&platform=${encodeURIComponent(platform)}&brand=${encodeURIComponent(targetBrand)}`;
-        }
-
-        async function disconnectOAuth(connId) {
-            await apiPost('disconnect_oauth', { connId });
-            showToast("Koneksi OAuth diputuskan.");
-            bootstrapApp();
-        }
-
-        function renderSidebarOAuth() {
-            const container = document.getElementById('sidebar-oauth-list');
-            if (!container) return;
-            const platforms = [
-                { name: 'Instagram', icon: 'ph-instagram-logo' },
-                { name: 'TikTok', icon: 'ph-tiktok-logo' },
-                { name: 'Threads', icon: 'ph-at' },
-                { name: 'YouTube', icon: 'ph-youtube-logo' }
-            ];
-            container.innerHTML = '';
-
-            platforms.forEach(p => {
-                const conn = state.connections.find(c =>
-                    c.platform === p.name && (state.activeBrand === 'ALL' || c.brand_name === state.activeBrand)
-                );
-                if (conn) {
-                    container.innerHTML += `
-                        <div class="flex items-center justify-between py-1 px-1">
-                            <span class="text-xs font-semibold text-gray-700 flex items-center gap-2"><i class="ph ${p.icon} text-base"></i> ${p.name}</span>
-                            <span class="text-[10px] font-bold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">Terhubung</span>
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML += `
-                        <div class="flex items-center justify-between py-1 px-1">
-                            <span class="text-xs font-medium text-gray-500 flex items-center gap-2"><i class="ph ${p.icon} text-base"></i> ${p.name}</span>
-                            <button type="button" onclick="connectOAuthPlatform('${p.name}')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
-                        </div>
-                    `;
-                }
-            });
-        }
-
-        function renderSettingsOAuthCards() {
-            const container = document.getElementById('settings-oauth-cards');
-            if (!container) return;
-            const platforms = ['Instagram', 'TikTok', 'Threads', 'YouTube'];
-            container.innerHTML = '';
-
-            platforms.forEach(p => {
-                const conn = state.connections.find(c =>
-                    c.platform === p && (state.activeBrand === 'ALL' || c.brand_name === state.activeBrand)
-                );
-                container.innerHTML += `
-                    <div class="apple-card p-6 flex flex-col justify-between gap-4">
-                        <div class="flex justify-between items-center">
-                            <h4 class="font-bold text-base text-gray-900">Koneksi ${p}</h4>
-                            ${conn
-                                ? `<button type="button" onclick="disconnectOAuth('${conn.conn_id}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">Putuskan (${conn.username})</button>`
-                                : `<button type="button" onclick="connectOAuthPlatform('${p}')" class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold cursor-pointer">Hubungkan ${p}</button>`
-                            }
-                        </div>
-                        <p class="text-xs text-gray-500 leading-relaxed">
-                            Sekali tersambung via OAuth 2.0 Vercel, sistem otomatis mem-publish post berstatus <strong>Ready</strong> sesuai slot jadwal Anda.
-                        </p>
-                    </div>
-                `;
-            });
-        }
-
-        // --- UNIFIED INBOX ("Balasan") ---
-        function setInboxFilter(status) {
-            state.inboxFilter = status;
-            document.getElementById('tab-inbox-unreplied').className = status === 'Unreplied'
-                ? 'bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold'
-                : 'apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold';
-            document.getElementById('tab-inbox-replied').className = status === 'Replied'
-                ? 'bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold'
-                : 'apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold';
-            renderUnifiedInbox();
-        }
-
-        function renderUnifiedInbox() {
-            const container = document.getElementById('inbox-list-container');
-            const badge = document.getElementById('inbox-badge');
-            if (!container) return;
-
-            const brandFiltered = state.activeBrand === 'ALL' ? state.inbox : state.inbox.filter(m => m.brand_name === state.activeBrand);
-            const unrepliedCount = brandFiltered.filter(m => m.status === 'Unreplied').length;
-
-            if (badge) {
-                if (unrepliedCount > 0) {
-                    badge.innerText = unrepliedCount;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
-            }
-
-            const list = brandFiltered.filter(m => m.status === state.inboxFilter);
-            container.innerHTML = '';
-
-            if (list.length === 0) {
-                container.innerHTML = `
-                    <div class="apple-card p-12 text-center">
-                        <h4 class="font-bold text-base text-gray-900">Antrean kosong</h4>
-                        <p class="text-xs text-gray-500 mt-1">Belum ada balasan baru di kategori ini.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            list.forEach(m => {
-                container.innerHTML += `
-                    <div class="apple-card p-5 space-y-3">
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="font-bold text-gray-900">${m.sender_username} <span class="text-gray-400 font-normal">di ${m.platform} (${m.brand_name})</span></span>
-                            <span class="text-gray-400">${String(m.received_at).split('T')[0]}</span>
-                        </div>
-                        <p class="text-sm text-gray-800 bg-gray-50 p-3 rounded-xl">"${m.comment_text}"</p>
-                        ${m.status === 'Unreplied' ? `
-                            <div class="flex gap-2">
-                                <input type="text" id="reply-input-${m.msg_id}" class="apple-input text-xs" placeholder="Tulis balasan Anda...">
-                                <button onclick="sendInboxReply('${m.msg_id}')" class="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold">Balas</button>
-                            </div>
-                        ` : `
-                            <p class="text-xs text-green-700 font-semibold">✓ Dibalas: "${m.reply_text}"</p>
-                        `}
-                    </div>
-                `;
-            });
-        }
-
-        async function sendInboxReply(msgId) {
-            const input = document.getElementById(`reply-input-${msgId}`);
-            if (!input || !input.value.trim()) return;
-            await apiPost('reply_inbox', { msgId, replyText: input.value.trim() });
-            showToast("Balasan terkirim!");
-            bootstrapApp();
-        }
-
-        // --- KALENDER & QUEUE SLOTS ---
-        function changeCalMonth(delta) {
-            state.calMonth += delta;
-            if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
-            if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
-            renderCalendar();
-        }
-
-        function renderCalendar() {
-            const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-            document.getElementById('cal-month-label').innerText = `${monthNames[state.calMonth]} ${state.calYear}`;
-            const grid = document.getElementById('calendar-grid');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            const firstDay = new Date(state.calYear, state.calMonth, 1).getDay();
-            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-            const daysInMonth = new Date(state.calYear, state.calMonth + 1, 0).getDate();
-            const dayKeys = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-
-            const filteredContents = getFilteredContents();
-            const activeSlots = state.activeBrand === 'ALL' ? state.slots : state.slots.filter(s => s.brand_name === state.activeBrand);
-
-            for (let i = 0; i < startOffset; i++) grid.innerHTML += `<div class="cal-cell bg-gray-50/50"></div>`;
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const fullDate = `${state.calYear}-${String(state.calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dayKey = dayKeys[(startOffset + day - 1) % 7];
-                const dayContents = filteredContents.filter(c => String(c.scheduled_date).startsWith(fullDate));
-                let htmlEvents = '';
-
-                dayContents.forEach(c => {
-                    htmlEvents += `<div onclick="editPostInComposer('${c.content_id}')" class="cal-event">${c.scheduled_time || ''} · ${c.content_title}</div>`;
-                });
-
-                activeSlots.forEach(slot => {
-                    if (String(slot[dayKey]) === "TRUE") {
-                        const isFilled = dayContents.some(c => c.scheduled_time === slot.time_slot && c.brand_name === slot.brand_name);
-                        if (!isFilled) {
-                            htmlEvents += `<div onclick="openComposerForSlot('${fullDate}', '${slot.time_slot}', '${slot.brand_name}')" class="slot-pill">Slot ${slot.time_slot}</div>`;
-                        }
-                    }
-                });
-
-                grid.innerHTML += `<div class="cal-cell"><div class="text-xs font-bold text-gray-800 mb-1">${day}</div>${htmlEvents}</div>`;
-            }
-        }
-
-        // --- SWIPE BATCH GENERATOR ---
-        function togglePillar(el, pillarName) {
-            el.classList.toggle('pillar-selected');
-            if (state.selectedPillars.includes(pillarName)) {
-                state.selectedPillars = state.selectedPillars.filter(p => p !== pillarName);
-            } else {
-                state.selectedPillars.push(pillarName);
-            }
-        }
-
-        async function executeBatchGenerate() {
-            const pillars = state.selectedPillars.length > 0 ? state.selectedPillars : ['Edukasi', 'Hiburan', 'Cerita Brand'];
-            const brandName = document.getElementById('swipe-brand').value;
-            if (!brandName) return showToast("Tambahkan brand terlebih dahulu!", true);
-
-            const platform = document.getElementById('swipe-platform').value;
-            const count = parseInt(document.getElementById('swipe-count').value);
-            const btn = document.getElementById('btn-buat-batch');
-
-            btn.innerText = "Meracik Batch dari Brand DNA...";
-            btn.disabled = true;
-            const res = await apiPost('generate_batch', { brandName, platform, pillars, count });
-            btn.innerText = "Buat batch";
-            btn.disabled = false;
-
-            if (res.success) {
-                showToast(`Berhasil membuat ${res.count} konten sesuai DNA ${brandName}!`);
-                await bootstrapApp();
-                navigate('calendar');
-            } else {
-                showToast("Gagal membuat batch: " + (res.error || "Unknown error"), true);
-            }
-        }
-
-        // --- COMPOSER & LIVE PREVIEW ---
-        function renderComposerQueue() {
-            const container = document.getElementById('composer-queue-list');
-            if (!container) return;
-            const list = getFilteredContents().filter(c => c.content_status !== 'Published');
-            container.innerHTML = list.length === 0 ? `<p class="text-xs text-gray-400 text-center py-6">Antrean kosong.</p>` : '';
-            list.forEach(c => {
-                container.innerHTML += `
-                    <div onclick="editPostInComposer('${c.content_id}')" class="p-3 rounded-xl border border-gray-100 hover:border-blue-400 bg-gray-50 cursor-pointer">
-                        <div class="flex justify-between text-[10px] font-bold text-gray-400 mb-1"><span>${c.platform}</span><span>${String(c.scheduled_date).split('T')[0]} ${c.scheduled_time || ''}</span></div>
-                        <p class="text-xs font-bold text-gray-900 line-clamp-2">${c.content_title}</p>
-                    </div>
-                `;
-            });
-        }
-
-        function openNewComposerPost() {
-            document.getElementById('comp-mode-title').innerText = "Buat post";
-            document.getElementById('comp-id').value = "";
-            document.getElementById('comp-title').value = "";
-            document.getElementById('comp-caption').value = "";
-            document.getElementById('comp-thumb-url').value = "";
-            document.getElementById('comp-status').value = "Ready";
-            document.getElementById('comp-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('comp-time').value = "19:00";
-            if (state.activeBrand !== 'ALL') document.getElementById('comp-brand').value = state.activeBrand;
-            updateLivePreview();
-            navigate('composer');
-        }
-
-        function openComposerForSlot(dateStr, timeStr, brandName) {
-            openNewComposerPost();
-            document.getElementById('comp-date').value = dateStr;
-            document.getElementById('comp-time').value = timeStr;
-            if (brandName) document.getElementById('comp-brand').value = brandName;
-            updateLivePreview();
-        }
-
-        function editPostInComposer(contentId) {
-            const c = state.contents.find(x => x.content_id === contentId);
-            if (!c) return;
-            document.getElementById('comp-mode-title').innerText = "Edit post";
-            document.getElementById('comp-id').value = c.content_id;
-            if (c.brand_name) document.getElementById('comp-brand').value = c.brand_name;
-            document.getElementById('comp-platform').value = c.platform || "YouTube";
-            document.getElementById('comp-pillar').value = c.content_pillar || "Edukasi";
-            document.getElementById('comp-status').value = c.content_status || "Ready";
-            document.getElementById('comp-title').value = c.content_title || "";
-            document.getElementById('comp-caption').value = c.caption || "";
-            document.getElementById('comp-thumb-url').value = c.thumbnail_url || "";
-            document.getElementById('comp-date').value = String(c.scheduled_date).split('T')[0];
-            document.getElementById('comp-time').value = c.scheduled_time || "19:00";
-            updateLivePreview();
-            navigate('composer');
         }
 
         function updateLivePreview() {
@@ -1579,7 +1117,7 @@
                         <img src="${a.file_url}" class="w-full aspect-square object-cover bg-gray-100">
                         <div class="p-3 space-y-2">
                             <p class="text-xs font-bold truncate">${a.file_name}</p>
-                            <button onclick="openNewComposerPost(); document.getElementById('comp-thumb-url').value='${a.file_url}'; updateLivePreview();" class="apple-btn-secondary w-full py-1.5 text-[11px]">Pakai di Post</button>
+                            <button type="button" onclick="openNewComposerPost(); document.getElementById('comp-thumb-url').value='${a.file_url}'; updateLivePreview();" class="apple-btn-secondary w-full py-1.5 text-[11px]">Pakai di Post</button>
                         </div>
                     </div>
                 `;
@@ -1605,7 +1143,7 @@
                 let checkboxes = days.map(d => `
                     <td class="py-3"><input type="checkbox" ${String(s[d]) === 'TRUE' ? 'checked' : ''} onchange="apiPost('toggle_slot', {slotId:'${s.slot_id}', dayKey:'${d}', value:this.checked})" class="w-4 h-4 accent-indigo-600 cursor-pointer"></td>
                 `).join('');
-                tbody.innerHTML += `<tr><td class="py-3 text-left font-bold">${slotClean}</td>${checkboxes}<td><button onclick="apiPost('delete_slot', {slotId:'${s.slot_id}'}).then(bootstrapApp)" class="text-red-500 cursor-pointer"><i class="ph ph-trash"></i></button></td></tr>`;
+                tbody.innerHTML += `<tr><td class="py-3 text-left font-bold">${slotClean}</td>${checkboxes}<td><button type="button" onclick="apiPost('delete_slot', {slotId:'${s.slot_id}'}).then(bootstrapApp)" class="text-red-500 cursor-pointer"><i class="ph ph-trash"></i></button></td></tr>`;
             });
         }
 
@@ -1705,24 +1243,6 @@
             document.getElementById('bc-pillar-bts').value = pMap['Behind The Scenes'] || '';
             document.getElementById('bc-pillar-interaksi').value = pMap['Interaksi'] || '';
             document.getElementById('bc-pillar-mitos').value = pMap['Mitos vs Fakta'] || '';
-            document.getElementById('brand-modal').classList.remove('hidden');
-            document.getElementById('brand-modal').classList.add('flex');
-        }
-
-        function editBrandForm(brandId) {
-            const b = state.brands.find(x => x.brand_id === brandId);
-            if (!b) return;
-            document.getElementById('brand-modal-title').innerText = `Edit DNA: ${b.brand_name}`;
-            document.getElementById('bc-id').value = b.brand_id;
-            document.getElementById('bc-name').value = b.brand_name || '';
-            document.getElementById('bc-niche').value = b.niche || '';
-            document.getElementById('bc-mood').value = b.mood || '';
-            document.getElementById('bc-tone').value = b.tone_of_voice || '';
-            document.getElementById('bc-audience').value = b.target_audience || '';
-            document.getElementById('bc-narrative').value = b.narrative_style || '';
-            document.getElementById('bc-guidelines').value = b.guidelines || '';
-            document.getElementById('bc-hooks').value = b.hook_formulas || '';
-            document.getElementById('bc-hook').value = b.product_or_core_hook || '';
             document.getElementById('brand-modal').classList.remove('hidden');
             document.getElementById('brand-modal').classList.add('flex');
         }
