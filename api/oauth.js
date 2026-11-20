@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   const { platform, brand, code, action } = req.query;
   const BASE_URL = `https://${req.headers.host}`;
-  const REDIRECT_URI = `${BASE_URL}/api/oauth`;
+  const DEFAULT_REDIRECT_URI = `${BASE_URL}/api/oauth`;
 
   // 1. INISIASI REDIRECT KE HALAMAN LOGIN PLATFORM
   if (action === "connect") {
@@ -10,9 +10,9 @@ export default async function handler(req, res) {
     if (platform === "Instagram") {
       const clientId = process.env.META_APP_ID || "1719082732943187";
       const configId = process.env.META_IG_CONFIG_ID || "1821758155697606";
-      const igRedirectUri = ${BASE_URL}/;
+      const igRedirectUri = `${BASE_URL}/`;
       return res.redirect(
-        https://www.facebook.com/dialog/oauth?client_id=${clientId}&config_id=${configId}&display=popup&override_default_response_type=true&redirect_uri=${encodeURIComponent(igRedirectUri)}&response_type=code&state=${state}&prompt=login
+        `https://www.facebook.com/dialog/oauth?client_id=${clientId}&config_id=${configId}&display=popup&override_default_response_type=true&redirect_uri=${encodeURIComponent(igRedirectUri)}&response_type=code&state=${state}&prompt=login`
       );
     }
 
@@ -20,21 +20,21 @@ export default async function handler(req, res) {
       const clientId = process.env.THREADS_APP_ID || process.env.META_APP_ID;
       if (!clientId) return res.redirect(`/?oauth_error=THREADS_APP_ID_belum_diset`);
       const scope = "threads_basic,threads_content_publish,threads_manage_replies";
-      return res.redirect(`https://threads.net/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${scope}&response_type=code&state=${state}`);
+      return res.redirect(`https://threads.net/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(DEFAULT_REDIRECT_URI)}&scope=${scope}&response_type=code&state=${state}`);
     }
 
     if (platform === "TikTok") {
       const clientKey = process.env.TIKTOK_CLIENT_KEY;
       if (!clientKey) return res.redirect(`/?oauth_error=TIKTOK_CLIENT_KEY_belum_diset`);
       const scope = "user.info.basic,video.publish,video.upload";
-      return res.redirect(`https://www.tiktok.com/v2/auth/authorize/?client_key=${clientKey}&scope=${scope}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&state=${state}`);
+      return res.redirect(`https://www.tiktok.com/v2/auth/authorize/?client_key=${clientKey}&scope=${scope}&response_type=code&redirect_uri=${encodeURIComponent(DEFAULT_REDIRECT_URI)}&state=${state}`);
     }
 
     if (platform === "YouTube") {
       const clientId = process.env.GOOGLE_CLIENT_ID;
       if (!clientId) return res.redirect(`/?oauth_error=GOOGLE_CLIENT_ID_belum_diset`);
       const scope = encodeURIComponent("https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/youtube.readonly");
-      return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent&state=${state}`);
+      return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(DEFAULT_REDIRECT_URI)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent&state=${state}`);
     }
   }
 
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
             code,
             client_id: process.env.GOOGLE_CLIENT_ID,
             client_secret: process.env.GOOGLE_CLIENT_SECRET,
-            redirect_uri: REDIRECT_URI,
+            redirect_uri: DEFAULT_REDIRECT_URI,
             grant_type: "authorization_code"
           })
         });
@@ -66,7 +66,6 @@ export default async function handler(req, res) {
         accessToken = tokenData.access_token;
         refreshToken = tokenData.refresh_token || "";
 
-        // Ambil nama channel YouTube asli
         const ytRes = await fetch("https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true", {
           headers: { Authorization: `Bearer ${accessToken}` }
         });
@@ -76,15 +75,17 @@ export default async function handler(req, res) {
           username = ytData.items[0].snippet.title;
         }
       }
-      // B. INSTAGRAM UNIFIED LOGIN TOKEN EXCHANGE (graph.facebook.com)
+
+      // B. INSTAGRAM UNIFIED LOGIN TOKEN EXCHANGE (redirect_uri memakai root URL sesuai Meta)
       else if (p === "Instagram") {
-        const tokenUrl = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${process.env.META_APP_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&client_secret=${process.env.META_APP_SECRET}&code=${encodeURIComponent(code)}`;
+        const clientId = process.env.META_APP_ID || "1719082732943187";
+        const igRedirectUri = `${BASE_URL}/`;
+        const tokenUrl = `https://graph.facebook.com/v21.0/oauth/access_token?client_id=${clientId}&redirect_uri=${encodeURIComponent(igRedirectUri)}&client_secret=${process.env.META_APP_SECRET}&code=${encodeURIComponent(code)}`;
         const tokenRes = await fetch(tokenUrl);
         const tokenData = await tokenRes.json();
         if (tokenData.error) throw new Error(tokenData.error.message || "Gagal tukar token Instagram Unified Login");
         accessToken = tokenData.access_token;
 
-        // Ambil Instagram Professional Account ID & Username yang dibagikan saat onboarding
         const igRes = await fetch(`https://graph.facebook.com/v21.0/me/accounts?fields=instagram_business_account{id,username}&access_token=${accessToken}`);
         const igData = await igRes.json();
         if (igData.data) {
@@ -105,7 +106,7 @@ export default async function handler(req, res) {
             client_id: process.env.THREADS_APP_ID || process.env.META_APP_ID,
             client_secret: process.env.THREADS_APP_SECRET || process.env.META_APP_SECRET,
             grant_type: "authorization_code",
-            redirect_uri: REDIRECT_URI,
+            redirect_uri: DEFAULT_REDIRECT_URI,
             code
           })
         });
@@ -125,7 +126,7 @@ export default async function handler(req, res) {
             client_secret: process.env.TIKTOK_CLIENT_SECRET,
             code,
             grant_type: "authorization_code",
-            redirect_uri: REDIRECT_URI
+            redirect_uri: DEFAULT_REDIRECT_URI
           })
         });
         const tokenData = await tokenRes.json();
