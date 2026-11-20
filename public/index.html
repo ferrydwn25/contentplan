@@ -19,7 +19,6 @@
         .apple-input:focus { background: #FFFFFF; border-color: #007AFF; box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
         .apple-label { display: block; font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
 
-        .nav-title { font-size: 10px; font-weight: 700; color: #8E8E93; text-transform: uppercase; letter-spacing: 0.6px; margin: 18px 0 6px 12px; }
         .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 11px; font-size: 13.5px; font-weight: 500; color: #4B5563; cursor: pointer; transition: 0.15s; }
         .nav-item:hover { background: #F3F4F6; color: #111827; }
         .nav-active { background: #EFF6FF !important; color: #007AFF !important; font-weight: 700; }
@@ -42,7 +41,7 @@
     <!-- MOBILE DRAWER OVERLAY -->
     <div id="drawer-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 hidden md:hidden" onclick="toggleMenu()"></div>
 
-    <!-- SIDEBAR (Ala Bleam + Enterprise Modules) -->
+    <!-- SIDEBAR -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white border-r border-gray-200 transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 flex flex-col md:relative md:w-64">
         <div class="px-5 py-5 border-b border-gray-100">
             <div class="flex justify-between items-center mb-4">
@@ -57,7 +56,7 @@
             <div>
                 <div class="flex justify-between items-center mb-1">
                     <label class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Active Brand</label>
-                    <button onclick="openNewBrandForm()" class="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer">+ Brand Baru</button>
+                    <button type="button" onclick="openNewBrandForm()" class="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer">+ Brand Baru</button>
                 </div>
                 <select id="global-brand-switcher" onchange="switchBrandWorkspace()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 outline-none focus:border-blue-500 cursor-pointer">
                     <option value="ALL">🌐 All Brands (Global)</option>
@@ -78,18 +77,16 @@
             <a onclick="navigate('assets')" id="nav-assets" class="nav-item"><i class="ph ph-images text-lg"></i> Aset & Drive</a>
             <a onclick="navigate('settings')" id="nav-settings" class="nav-item"><i class="ph ph-gear text-lg"></i> Pengaturan & Slot</a>
 
-            <!-- QUICK OAUTH PANEL (Ala Bleam: "Posting ke") -->
+            <!-- QUICK OAUTH PANEL ("Posting ke") -->
             <div class="mt-6 pt-4 border-t border-gray-100 px-1">
                 <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Posting ke (OAuth)</p>
-                <div class="space-y-2" id="sidebar-oauth-list">
-                    <!-- Rendered via JS -->
-                </div>
+                <div class="space-y-2" id="sidebar-oauth-list"></div>
             </div>
         </div>
 
         <div class="p-4 border-t border-gray-100 bg-gray-50/70">
             <div class="flex items-center justify-between text-xs">
-                <span class="font-bold text-gray-700 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500"></span> Vercel Edge Live</span>
+                <span class="font-bold text-gray-700 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500" id="sync-status-dot"></span> <span id="sync-status-text">Vercel Edge Live</span></span>
                 <span class="text-gray-400 font-mono">v3.0</span>
             </div>
         </div>
@@ -119,7 +116,7 @@
             <button onclick="document.getElementById('oauth-banner').classList.add('hidden')" class="underline">Tutup</button>
         </div>
 
-        <!-- GLOBAL FLOATING TOAST (Pengganti alert() agar mulus di HP & PC) -->
+        <!-- GLOBAL FLOATING TOAST -->
         <div id="app-toast" class="fixed bottom-5 right-5 z-50 hidden bg-gray-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl items-center gap-2.5 transition-all">
             <i class="ph-fill ph-check-circle text-green-400 text-base" id="app-toast-icon"></i>
             <span id="app-toast-msg">Tersimpan!</span>
@@ -321,7 +318,7 @@
                 </div>
             </div>
 
-            <!-- 4. VIEW: BALASAN (UNIFIED COMMENT INBOX — Ala Bleam) -->
+            <!-- 4. VIEW: BALASAN (UNIFIED COMMENT INBOX) -->
             <div id="view-inbox" class="view-section hidden max-w-4xl mx-auto space-y-5">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
@@ -333,10 +330,7 @@
                         <button onclick="setInboxFilter('Replied')" id="tab-inbox-replied" class="apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold">Sudah dibales</button>
                     </div>
                 </div>
-
-                <div id="inbox-list-container" class="space-y-3">
-                    <!-- Rendered via JS -->
-                </div>
+                <div id="inbox-list-container" class="space-y-3"></div>
             </div>
 
             <!-- 5. VIEW: ANALITIK -->
@@ -366,14 +360,16 @@
                     </div>
                 </div>
                 <div id="assets-gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
-            <!-- 7. VIEW: LEARNING & BRAND DNA (MOOD, GUIDELINES, NARASI, AUTO-LEARN) -->
+            </div>
+
+            <!-- 7. VIEW: LEARNING & BRAND DNA -->
             <div id="view-brandcontext" class="view-section hidden max-w-5xl mx-auto space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
                         <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Learning & Brand DNA</h2>
                         <p class="text-xs text-gray-500">Atur Mood, Guidelines, Gaya Narasi, dan Formula Hook agar Swipe & Buat Post meniru gaya tiap brand Anda.</p>
                     </div>
-                    <button onclick="openNewBrandForm()" class="bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+                    <button type="button" onclick="openNewBrandForm()" class="bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
                         <i class="ph ph-plus"></i> Tambah Brand Baru
                     </button>
                 </div>
@@ -403,12 +399,21 @@
                             <tbody id="slot-matrix-body" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
+                </div>
+
+                <!-- OAuth Connection Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="settings-oauth-cards"></div>
+            </div>
+
+        </div>
+    </main>
+
     <!-- MODAL BRAND DNA & LEARNING -->
     <div id="brand-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 space-y-4">
             <div class="flex justify-between items-center border-b border-gray-100 pb-3">
                 <h3 class="text-lg font-extrabold text-gray-900" id="brand-modal-title">Pengaturan Brand DNA & Learning</h3>
-                <button onclick="closeBrandModal()" class="text-gray-400 hover:text-gray-700 p-1"><i class="ph ph-x text-lg"></i></button>
+                <button type="button" onclick="closeBrandModal()" class="text-gray-400 hover:text-gray-700 p-1"><i class="ph ph-x text-lg"></i></button>
             </div>
             <input type="hidden" id="bc-id">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -425,8 +430,8 @@
             <div><label class="apple-label">Formula Hook Andalan (1 baris per template, gunakan {topic} / {num})</label><textarea id="bc-hooks" rows="3" class="apple-input font-mono text-xs" placeholder="Part {num}: Rahasia di balik {topic}&#10;Kenapa {topic} jarang diketahui orang?"></textarea></div>
             <div><label class="apple-label">Core Hook / Deskripsi Produk Utama</label><textarea id="bc-hook" rows="2" class="apple-input" placeholder="Jelaskan inti cerita atau produk utama brand ini..."></textarea></div>
             <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
-                <button onclick="closeBrandModal()" class="apple-btn-secondary px-4 py-2 text-xs">Batal</button>
-                <button onclick="submitBrandContext()" id="btn-save-brand" class="bg-gray-900 text-white px-5 py-2 rounded-xl text-xs font-bold cursor-pointer">Simpan Brand DNA</button>
+                <button type="button" onclick="closeBrandModal()" class="apple-btn-secondary px-4 py-2 text-xs">Batal</button>
+                <button type="button" onclick="submitBrandContext()" id="btn-save-brand" class="bg-gray-900 text-white px-5 py-2 rounded-xl text-xs font-bold cursor-pointer">Simpan Brand DNA</button>
             </div>
         </div>
     </div>
@@ -446,13 +451,37 @@
             calMonth: 10,
             selectedPillars: []
         };
+
+        // --- API PROXY HELPERS ---
+        async function apiGet(endpoint) {
+            try {
+                const res = await fetch(`/api/gas-proxy?api=${encodeURIComponent(endpoint)}`);
+                return await res.json();
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        }
+
+        async function apiPost(action, bodyObj = {}) {
+            try {
+                const res = await fetch('/api/gas-proxy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, ...bodyObj })
+                });
+                return await res.json();
+            } catch (err) {
+                return { success: false, error: err.message };
+            }
+        }
+
         function showToast(msg, isError = false) {
             const toast = document.getElementById('app-toast');
             const icon = document.getElementById('app-toast-icon');
             const text = document.getElementById('app-toast-msg');
             text.innerText = msg;
-            icon.className = isError 
-                ? 'ph-fill ph-warning-circle text-red-400 text-base' 
+            icon.className = isError
+                ? 'ph-fill ph-warning-circle text-red-400 text-base'
                 : 'ph-fill ph-check-circle text-green-400 text-base';
             toast.classList.remove('hidden');
             toast.classList.add('flex');
@@ -463,6 +492,10 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            // Render UI awal langsung sebelum data GAS selesai dimuat agar bar OAuth & tombol langsung aktif
+            renderSidebarOAuth();
+            renderSettingsOAuthCards();
+            renderCalendar();
             checkOAuthQueryParams();
             bootstrapApp();
         });
@@ -484,11 +517,21 @@
         }
 
         async function bootstrapApp() {
+            const dot = document.getElementById('sync-status-dot');
+            const statusText = document.getElementById('sync-status-text');
+            if (statusText) statusText.innerText = "Syncing Sheets...";
+
             const res = await apiGet('bootstrap');
             if (!res.success) {
-                console.error("Bootstrap error:", res.error);
+                if (dot) dot.className = "w-2 h-2 rounded-full bg-amber-500";
+                if (statusText) statusText.innerText = "GAS Offline / Cek ENV";
+                showToast("Info Koneksi GAS: " + (res.error || "Gagal memuat data"), true);
                 return;
             }
+
+            if (dot) dot.className = "w-2 h-2 rounded-full bg-green-500";
+            if (statusText) statusText.innerText = "Vercel Edge Live";
+
             state.brands = res.brands || [];
             state.slots = res.slots || [];
             state.contents = res.contents || [];
@@ -510,7 +553,8 @@
             });
             const activeNav = document.getElementById('nav-' + viewName);
             if (activeNav && viewName !== 'swipe') activeNav.classList.add('nav-active');
-            document.getElementById('view-' + viewName).classList.remove('hidden');
+            const targetView = document.getElementById('view-' + viewName);
+            if (targetView) targetView.classList.remove('hidden');
 
             const titles = {
                 swipe: 'Swipe (Batch AI)', calendar: 'Kalender', composer: 'Buat Post', inbox: 'Balasan',
@@ -580,7 +624,7 @@
             }
         }
 
-        // --- OAUTH CONNECTIONS ("Hubungkan") ---
+        // --- OAUTH CONNECTIONS ("Posting ke") ---
         function connectOAuthPlatform(platform) {
             const targetBrand = state.activeBrand === 'ALL'
                 ? (state.brands[0] ? state.brands[0].brand_name : 'Bacon Files')
@@ -589,13 +633,14 @@
         }
 
         async function disconnectOAuth(connId) {
-            if (!confirm("Putuskan koneksi OAuth akun ini?")) return;
             await apiPost('disconnect_oauth', { connId });
+            showToast("Koneksi OAuth diputuskan.");
             bootstrapApp();
         }
 
         function renderSidebarOAuth() {
             const container = document.getElementById('sidebar-oauth-list');
+            if (!container) return;
             const platforms = [
                 { name: 'Instagram', icon: 'ph-instagram-logo' },
                 { name: 'TikTok', icon: 'ph-tiktok-logo' },
@@ -619,7 +664,7 @@
                     container.innerHTML += `
                         <div class="flex items-center justify-between py-1 px-1">
                             <span class="text-xs font-medium text-gray-500 flex items-center gap-2"><i class="ph ${p.icon} text-base"></i> ${p.name}</span>
-                            <button onclick="connectOAuthPlatform('${p.name}')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
+                            <button type="button" onclick="connectOAuthPlatform('${p.name}')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
                         </div>
                     `;
                 }
@@ -628,6 +673,7 @@
 
         function renderSettingsOAuthCards() {
             const container = document.getElementById('settings-oauth-cards');
+            if (!container) return;
             const platforms = ['Instagram', 'TikTok', 'Threads', 'YouTube'];
             container.innerHTML = '';
 
@@ -640,8 +686,8 @@
                         <div class="flex justify-between items-center">
                             <h4 class="font-bold text-base text-gray-900">Koneksi ${p}</h4>
                             ${conn
-                                ? `<button onclick="disconnectOAuth('${conn.conn_id}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold">Putuskan (${conn.username})</button>`
-                                : `<button onclick="connectOAuthPlatform('${p}')" class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold">Hubungkan ${p}</button>`
+                                ? `<button type="button" onclick="disconnectOAuth('${conn.conn_id}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">Putuskan (${conn.username})</button>`
+                                : `<button type="button" onclick="connectOAuthPlatform('${p}')" class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold cursor-pointer">Hubungkan ${p}</button>`
                             }
                         </div>
                         <p class="text-xs text-gray-500 leading-relaxed">
@@ -667,14 +713,18 @@
         function renderUnifiedInbox() {
             const container = document.getElementById('inbox-list-container');
             const badge = document.getElementById('inbox-badge');
+            if (!container) return;
+
             const brandFiltered = state.activeBrand === 'ALL' ? state.inbox : state.inbox.filter(m => m.brand_name === state.activeBrand);
             const unrepliedCount = brandFiltered.filter(m => m.status === 'Unreplied').length;
 
-            if (unrepliedCount > 0) {
-                badge.innerText = unrepliedCount;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
+            if (badge) {
+                if (unrepliedCount > 0) {
+                    badge.innerText = unrepliedCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
             }
 
             const list = brandFiltered.filter(m => m.status === state.inboxFilter);
@@ -715,6 +765,7 @@
             const input = document.getElementById(`reply-input-${msgId}`);
             if (!input || !input.value.trim()) return;
             await apiPost('reply_inbox', { msgId, replyText: input.value.trim() });
+            showToast("Balasan terkirim!");
             bootstrapApp();
         }
 
@@ -730,6 +781,7 @@
             const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
             document.getElementById('cal-month-label').innerText = `${monthNames[state.calMonth]} ${state.calYear}`;
             const grid = document.getElementById('calendar-grid');
+            if (!grid) return;
             grid.innerHTML = '';
 
             const firstDay = new Date(state.calYear, state.calMonth, 1).getDay();
@@ -802,6 +854,7 @@
         // --- COMPOSER & LIVE PREVIEW ---
         function renderComposerQueue() {
             const container = document.getElementById('composer-queue-list');
+            if (!container) return;
             const list = getFilteredContents().filter(c => c.content_status !== 'Published');
             container.innerHTML = list.length === 0 ? `<p class="text-xs text-gray-400 text-center py-6">Antrean kosong.</p>` : '';
             list.forEach(c => {
@@ -936,19 +989,51 @@
             }
         }
 
-        // --- ASSETS & SLOT MATRIX & BRAND DNA LEARNING ---
+        // --- ASSETS & GOOGLE DRIVE ---
+        function populateComposerAssetDropdown() {
+            const sel = document.getElementById('comp-asset-select');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">-- Pilih dari Perpustakaan Aset --</option>';
+            state.assets.forEach(a => {
+                sel.innerHTML += `<option value="${a.file_url}">${a.file_name}</option>`;
+            });
+        }
+
+        function selectAssetForComposer() {
+            document.getElementById('comp-thumb-url').value = document.getElementById('comp-asset-select').value;
+            updateLivePreview();
+        }
+
+        function handleDriveFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            document.getElementById('upload-idle-state').classList.add('hidden');
+            document.getElementById('upload-loading-state').classList.remove('hidden');
+
+            const reader = new FileReader();
             reader.onload = async function(e) {
                 const brandName = state.activeBrand === 'ALL' ? 'General' : state.activeBrand;
-                await apiPost('upload_asset', { base64Data: e.target.result, fileName: file.name, mimeType: file.type, brandName });
+                const res = await apiPost('upload_asset', {
+                    base64Data: e.target.result,
+                    fileName: file.name,
+                    mimeType: file.type,
+             brandName
+                });
                 document.getElementById('upload-idle-state').classList.remove('hidden');
                 document.getElementById('upload-loading-state').classList.add('hidden');
-                bootstrapApp();
+                if (res.success) {
+                    showToast("Aset berhasil diunggah ke Google Drive!");
+                    bootstrapApp();
+                } else {
+                    showToast("Gagal upload: " + res.error, true);
+                }
             };
             reader.readAsDataURL(file);
         }
 
         function renderAssetsGallery() {
             const grid = document.getElementById('assets-gallery-grid');
+            if (!grid) return;
             grid.innerHTML = state.assets.length === 0 ? `<p class="col-span-full text-center text-xs text-gray-400 py-8">Belum ada aset.</p>` : '';
             state.assets.forEach(a => {
                 grid.innerHTML += `
@@ -963,30 +1048,41 @@
             });
         }
 
+        // --- SLOT MATRIX ---
         function renderSlotMatrix() {
             const tbody = document.getElementById('slot-matrix-body');
+            if (!tbody) return;
             const selectedBrand = document.getElementById('slot-brand-filter').value;
             const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
             const brandSlots = state.slots.filter(s => s.brand_name === selectedBrand);
             tbody.innerHTML = '';
 
+            if (brandSlots.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="py-6 text-xs text-gray-400">Belum ada slot jam untuk brand ini. Klik "+ Tambah jam" di atas.</td></tr>`;
+                return;
+            }
+
             brandSlots.forEach(s => {
                 let checkboxes = days.map(d => `
                     <td class="py-3"><input type="checkbox" ${String(s[d]) === 'TRUE' ? 'checked' : ''} onchange="apiPost('toggle_slot', {slotId:'${s.slot_id}', dayKey:'${d}', value:this.checked})" class="w-4 h-4 accent-indigo-600 cursor-pointer"></td>
                 `).join('');
-                tbody.innerHTML += `<tr><td class="py-3 text-left font-bold">${s.time_slot}</td>${checkboxes}<td><button onclick="apiPost('delete_slot', {slotId:'${s.slot_id}'}).then(bootstrapApp)" class="text-red-500"><i class="ph ph-trash"></i></button></td></tr>`;
+                tbody.innerHTML += `<tr><td class="py-3 text-left font-bold">${s.time_slot}</td>${checkboxes}<td><button onclick="apiPost('delete_slot', {slotId:'${s.slot_id}'}).then(bootstrapApp)" class="text-red-500 cursor-pointer"><i class="ph ph-trash"></i></button></td></tr>`;
             });
         }
 
         async function createNewSlot() {
             const brandName = document.getElementById('slot-brand-filter').value;
+            if (!brandName) return showToast("Pilih brand terlebih dahulu!", true);
             const timeSlot = document.getElementById('new-slot-time').value;
             await apiPost('add_slot', { brandName, timeSlot });
+            showToast(`Slot jam ${timeSlot} ditambahkan!`);
             bootstrapApp();
         }
 
+        // --- BRAND DNA & LEARNING ---
         function renderBrandContextCards() {
             const container = document.getElementById('brand-context-cards');
+            if (!container) return;
             container.innerHTML = '';
             if (state.brands.length === 0) {
                 container.innerHTML = `<div class="col-span-full apple-card p-8 text-center text-xs text-gray-500">Belum ada brand. Klik "+ Tambah Brand Baru" di atas.</div>`;
@@ -1002,8 +1098,8 @@
                                     <span class="text-[11px] bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-bold inline-block mt-1">${b.niche || 'General'}</span>
                                 </div>
                                 <div class="flex gap-1">
-                                    <button onclick="editBrandForm('${b.brand_id}')" class="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Edit Brand DNA"><i class="ph ph-pencil-simple"></i></button>
-                                    <button onclick="deleteBrandItem('${b.brand_id}', '${b.brand_name}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Hapus Brand"><i class="ph ph-trash"></i></button>
+                                    <button type="button" onclick="editBrandForm('${b.brand_id}')" class="p-2 text-gray-500 hover:bg-gray-100 rounded-lg cursor-pointer" title="Edit Brand DNA"><i class="ph ph-pencil-simple"></i></button>
+                                    <button type="button" onclick="deleteBrandItem('${b.brand_id}', '${b.brand_name}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer" title="Hapus Brand"><i class="ph ph-trash"></i></button>
                                 </div>
                             </div>
                             <div class="text-xs text-gray-600 space-y-1 bg-gray-50 p-3 rounded-xl border border-gray-100">
@@ -1017,7 +1113,7 @@
                                 </div>
                             ` : ''}
                         </div>
-                        <button onclick="triggerAutoLearn('${b.brand_name}', this)" class="apple-btn-secondary w-full py-2 text-xs flex items-center justify-center gap-1.5">
+                        <button type="button" onclick="triggerAutoLearn('${b.brand_name}', this)" class="apple-btn-secondary w-full py-2 text-xs flex items-center justify-center gap-1.5">
                             <i class="ph ph-brain"></i> Pelajari dari Postingan Sebelumnya
                         </button>
                     </div>
@@ -1095,7 +1191,7 @@
                 showToast(`Brand DNA "${brandName}" berhasil disimpan!`);
                 await bootstrapApp();
             } else {
-                showToast("Gagal menyimpan brand: " + res.error, true);
+                showToast("Gagal menyimpan brand: " + (res.error || "Cek koneksi GAS"), true);
             }
         }
 
