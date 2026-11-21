@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     if (platform === "TikTok") {
       const clientKey = process.env.TIKTOK_CLIENT_KEY;
       if (!clientKey) return res.redirect(`/?oauth_error=TIKTOK_CLIENT_KEY_belum_diset`);
-      const scope = "user.info.basic,video.publish,video.upload";
+      const scope = "user.info.basic,user.info.stats,video.list,video.publish,video.upload";
       return res.redirect(`https://www.tiktok.com/v2/auth/authorize/?client_key=${clientKey}&scope=${scope}&response_type=code&redirect_uri=${encodeURIComponent(DEFAULT_REDIRECT_URI)}&state=${state}`);
     }
 
@@ -134,6 +134,18 @@ export default async function handler(req, res) {
         accessToken = tokenData.access_token;
         refreshToken = tokenData.refresh_token || "";
         platformUserId = tokenData.open_id || "";
+
+        // Ambil nama/username asli akun TikTok
+        try {
+          const ttProfileRes = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,username", {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          const ttProfileJson = await ttProfileRes.json();
+          const uObj = ttProfileJson.data?.user;
+          if (uObj) {
+            username = uObj.username ? `@${uObj.username}` : (uObj.display_name || username);
+          }
+        } catch (e) {}
       }
 
       // 3. SIMPAN TOKEN ASLI KE GOOGLE SHEETS VIA GAS
