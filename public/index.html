@@ -878,27 +878,36 @@
             fetchLivePlatformFeeds(false);
         }
 
+         async function safeJsonResponse(res) {
+            const txt = await res.text();
+            try {
+                return JSON.parse(txt);
+            } catch (e) {
+                return { success: false, error: txt.slice(0, 120) };
+            }
+        }
+
         async function fetchLivePlatformFeeds(showNotif = true) {
             const btn = document.getElementById('btn-sync-feeds');
             if (btn) { btn.innerText = "Menarik Feeds..."; btn.disabled = true; }
 
             try {
-                const res = await fetch(`/api/social-sync?mode=feeds&brand=${encodeURIComponent(state.activeBrand)}&platform=${encodeURIComponent(state.feedPlatform)}`);
-                const json = await res.json();
+                const res = await fetch(/api/social-sync?mode=feeds&brand=${encodeURIComponent(state.activeBrand)}&platform=${encodeURIComponent(state.feedPlatform)});
+                const json = await safeJsonResponse(res);
                 if (json.success) {
                     state.liveFeeds = json.posts || [];
                     renderFeedsView();
-                    if (showNotif) showToast(`Berhasil menarik ${state.liveFeeds.length} post dari ${state.feedPlatform}!`);
+                    if (showNotif) showToast(Berhasil menarik ${state.liveFeeds.length} post dari ${state.feedPlatform}!);
                 } else if (showNotif) {
                     showToast("Gagal menarik feeds: " + (json.error || "Cek koneksi OAuth"), true);
                 }
             } catch (e) {
                 if (showNotif) showToast("Error koneksi API: " + e.message, true);
             } finally {
-                if (btn) { btn.innerHTML = `<i class="ph ph-cloud-arrow-down"></i> Tarik Feeds API`; btn.disabled = false; }
+                if (btn) { btn.innerHTML = <i class="ph ph-cloud-arrow-down"></i> Tarik Feeds API; btn.disabled = false; }
             }
         }
-
+            
         function openNewComposerPostForFeed() {
             openNewComposerPost();
             document.getElementById('comp-platform').value = state.feedPlatform;
@@ -1029,10 +1038,10 @@
             btn.disabled = true;
 
             try {
-                const res = await fetch(`/api/social-sync?mode=sync_inbox&brand=${encodeURIComponent(state.activeBrand)}`);
-                const json = await res.json();
+                const res = await fetch(/api/social-sync?mode=sync_inbox&brand=${encodeURIComponent(state.activeBrand)});
+                const json = await safeJsonResponse(res);
                 if (json.success) {
-                    showToast(`Sinkronisasi selesai! ${json.fetchedCount} komentar diperiksa dari API.`);
+                    showToast(Sinkronisasi selesai! ${json.fetchedCount} komentar diperiksa dari API.);
                     await bootstrapApp();
                 } else {
                     showToast("Gagal sinkronisasi: " + (json.error || "Cek koneksi OAuth"), true);
@@ -1040,7 +1049,7 @@
             } catch (e) {
                 showToast("Error API Inbox: " + e.message, true);
             } finally {
-                btn.innerHTML = `<i class="ph ph-arrows-clockwise"></i> Sinkronkan Komentar API`;
+                btn.innerHTML = <i class="ph ph-arrows-clockwise"></i> Sinkronkan Komentar API;
                 btn.disabled = false;
             }
         }
@@ -1140,8 +1149,8 @@
             if (btn) { btn.innerText = "Menarik Data API..."; btn.disabled = true; }
 
             try {
-                const res = await fetch(`/api/social-sync?mode=analytics&brand=${encodeURIComponent(state.activeBrand)}`);
-                const json = await res.json();
+                const res = await fetch(/api/social-sync?mode=analytics&brand=${encodeURIComponent(state.activeBrand)});
+                const json = await safeJsonResponse(res);
                 if (json.success) {
                     state.liveAnalytics = json.summary;
                     renderAnalyticsDashboard();
@@ -1152,10 +1161,10 @@
             } catch (e) {
                 if (showNotif) showToast("Error API Analitik: " + e.message, true);
             } finally {
-                if (btn) { btn.innerHTML = `<i class="ph ph-chart-line-up"></i> Tarik Data API Terbaru`; btn.disabled = false; }
+                if (btn) { btn.innerHTML = <i class="ph ph-chart-line-up"></i> Tarik Data API Terbaru; btn.disabled = false; }
             }
         }
-
+            
         function renderAnalyticsDashboard() {
             const s = state.liveAnalytics || {
                 totalFollowers: 0, totalViews: 0, totalLikes: 0, totalComments: 0, totalShares: 0,
