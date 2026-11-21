@@ -1,8 +1,84 @@
 /**
  * VERCEL SERVERLESS ENDPOINT (/api/social-sync)
- * Menarik Feeds eksisting, Analitik & Insight Retensi, serta Sinkronisasi Komentar
- * dengan isolasi error per platform agar tidak pernah crash (500).
+ * Versi Parallel & Ultra-Fast (Promise.all + Timeout Guard) agar tidak pernah kena
+ * batas timeout 10 detik Vercel saat menarik data GAS + YouTube + IG + TikTok + Threads.
  */
+
+async function fetchWithTimeout(url, options = {}, timeoutMs = 4500) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    return res;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Auto-Refresh Access Token jika expired (YouTube 1 jam / TikTok 24 jam)
+ * lalu simpan token baru ke Google Sheets agar tetap aktif.
+ */
+async function ensureFreshToken(conn, GAS_URL, API_SECRET) {
+  if (!conn.refresh_token) return conn.access_token;
+
+  try {
+    if (conn.platform === "YouTube" && process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+      const r = await fetchWithTimeout("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: process.env.GOOGLE_CLIENT_ID,
+          client_secret: process.env.GOOGLE_CLIENT_SECRET,
+          refresh_token: conn.refresh_token,
+          grant_type: "refresh_token"
+        })
+      }, 3500);
+      const j = await r.json();
+      if (j.access_token) {
+        conn.access_token = j.access_token;
+        fetchWithTimeout(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            secret: API_SECRET,
+            action: "save_oauth_connection",
+            payload: { ...conn, access_token: j.access_token }
+          })
+        }, 3000).catch(() => {});
+      }
+    }
+
+    if (conn.platform === "TikTok" && process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET) {
+      const r = await fetchWithTimeout("https://open.tiktokapis.com/v2/oauth/token/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_key: process.env.TIKTOK_CLIENT_KEY,
+          client_secret: process.env.TIKTOK_CLIENT_SECRET,
+          grant_type: "refresh_token",
+          refresh_token: conn.refresh_token
+        })
+      }, 3500);
+      const j = await r.json();
+      if (j.access_token) {
+        conn.access_token = j.access_token;
+        conn.refresh_token = j.refresh_token || conn.refresh_token;
+        fetchWithTimeout(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            secret: API_SECRET,
+            action: "save_oauth_connection",
+            payload: { ...conn, access_token: j.access_token, refresh_token: conn.refresh_token }
+          })
+        }, 3000).catch(() => {});
+      }
+    }
+  } catch (e) {}
+
+  return conn.access_token;
+}
 
 export default async function handler(req, res) {
   try {
@@ -28,25 +104,27 @@ export default async function handler(req, res) {
     const params = req.method === "POST" ? bodyObj : (req.query || {});
     const { mode, brand, platform, msgId, replyText } = params;
 
-    // 1. Ambil daftar koneksi OAuth beserta access_token dari GAS secara aman
-    const tokenRes = await fetch(`${GAS_URL}?api=oauth_tokens&secret=${encodeURIComponent(API_SECRET)}`, {
-      redirect: "follow"
-    });
+    // 1. Ambil daftar koneksi OAuth & token dari GAS
+    const tokenRes = await fetchWithTimeout(
+      `${GAS_URL}?api=oauth_tokens&secret=${encodeURIComponent(API_SECRET)}`,
+      { redirect: "follow" },
+      6000
+    );
     const rawTokenText = await tokenRes.text();
     let tokenData;
     try {
       tokenData = JSON.parse(rawTokenText);
-    } catch (parseErr) {
+    } catch (e) {
       return res.status(200).json({
         success: false,
-        error: "GAS mengembalikan halaman non-JSON. Pastikan Anda sudah klik Deploy > Kelola Deployment > Edit > Versi Baru di Apps Script."
+        error: "GAS mengembalikan non-JSON. Pastikan sudah Deploy > Kelola Deployment > Edit > Versi Baru di Apps Script."
       });
     }
 
     if (!tokenData.success) {
       return res.status(200).json({
         success: false,
-        error: tokenData.error || "Endpoint oauth_tokens di GAS belum aktif. Silakan Deploy Versi Baru di Apps Script."
+        error: tokenData.error || "Gagal membaca token OAuth dari GAS."
       });
     }
 
@@ -55,34 +133,45 @@ export default async function handler(req, res) {
     );
 
     // =========================================================================
-    // MODE A: FETCH EXISTING FEEDS PER PLATFORM
+    // MODE A: FETCH EXISTING FEEDS PER PLATFORM (PARALLEL)
     // =========================================================================
     if (mode === "feeds") {
       const targetConns = platform && platform !== "ALL"
         ? allConns.filter(c => c.platform === platform)
         : allConns;
-      let existingPosts = [];
 
-      for (const conn of targetConns) {
-        if (!conn.access_token) continue;
+      const feedTasks = targetConns.map(async (conn) => {
+        if (!conn.access_token) return [];
+        const token = await ensureFreshToken(conn, GAS_URL, API_SECRET);
+        const posts = [];
 
         try {
           if (conn.platform === "YouTube") {
-            const searchRes = await fetch(
-              "https://www.googleapis.com/youtube/v3/search?part=snippet&forMine=true&type=video&order=date&maxResults=12",
-              { headers: { Authorization: `Bearer ${conn.access_token}` } }
-            );
-            const searchJson = await searchRes.json();
-            const videoIds = (searchJson.items || []).map(i => i.id?.videoId).filter(Boolean);
+            const chEndpoint = conn.platform_user_id
+              ? `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${conn.platform_user_id}`
+              : "https://www.googleapis.com/youtube/v3/channels?part=contentDetails&mine=true";
+            const chRes = await fetchWithTimeout(chEndpoint, { headers: { Authorization: `Bearer ${token}` } });
+            const chJson = await chRes.json();
+            const uploadsPlaylistId = chJson.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+
+            let videoIds = [];
+            if (uploadsPlaylistId) {
+              const plRes = await fetchWithTimeout(
+                `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadsPlaylistId}&maxResults=12`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              const plJson = await plRes.json();
+              videoIds = (plJson.items || []).map(i => i.contentDetails?.videoId).filter(Boolean);
+            }
 
             if (videoIds.length > 0) {
-              const statsRes = await fetch(
+              const vRes = await fetchWithTimeout(
                 `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${videoIds.join(",")}`,
-                { headers: { Authorization: `Bearer ${conn.access_token}` } }
+                { headers: { Authorization: `Bearer ${token}` } }
               );
-              const statsJson = await statsRes.json();
-              (statsJson.items || []).forEach(v => {
-                existingPosts.push({
+              const vJson = await vRes.json();
+              (vJson.items || []).forEach(v => {
+                posts.push({
                   id: v.id,
                   platform: "YouTube",
                   brand_name: conn.brand_name,
@@ -101,12 +190,12 @@ export default async function handler(req, res) {
           }
 
           if (conn.platform === "Instagram" && conn.platform_user_id) {
-            const igRes = await fetch(
+            const igRes = await fetchWithTimeout(
               `https://graph.facebook.com/v21.0/${conn.platform_user_id}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp,like_count,comments_count&limit=12&access_token=${conn.access_token}`
             );
             const igJson = await igRes.json();
             (igJson.data || []).forEach(m => {
-              existingPosts.push({
+              posts.push({
                 id: m.id,
                 platform: "Instagram",
                 brand_name: conn.brand_name,
@@ -124,12 +213,12 @@ export default async function handler(req, res) {
           }
 
           if (conn.platform === "Threads") {
-            const thRes = await fetch(
+            const thRes = await fetchWithTimeout(
               `https://graph.threads.net/v1.0/me/threads?fields=id,text,media_type,media_url,permalink,timestamp&limit=12&access_token=${conn.access_token}`
             );
             const thJson = await thRes.json();
             (thJson.data || []).forEach(t => {
-              existingPosts.push({
+              posts.push({
                 id: t.id,
                 platform: "Threads",
                 brand_name: conn.brand_name,
@@ -147,7 +236,7 @@ export default async function handler(req, res) {
           }
 
           if (conn.platform === "TikTok") {
-            const ttRes = await fetch(
+            const ttRes = await fetchWithTimeout(
               "https://open.tiktokapis.com/v2/video/list/?fields=id,title,cover_image_url,share_url,create_time,view_count,like_count,comment_count,share_count",
               {
                 method: "POST",
@@ -160,7 +249,7 @@ export default async function handler(req, res) {
             );
             const ttJson = await ttRes.json();
             (ttJson.data?.videos || []).forEach(v => {
-              existingPosts.push({
+              posts.push({
                 id: v.id,
                 platform: "TikTok",
                 brand_name: conn.brand_name,
@@ -177,16 +266,25 @@ export default async function handler(req, res) {
               });
             });
           }
-        } catch (platErr) {
-          console.error(`Feeds error on ${conn.platform}:`, platErr.message);
+        } catch (err) {
+          console.error(`Feeds ${conn.platform} error:`, err.message);
         }
-      }
 
-      return res.status(200).json({ success: true, posts: existingPosts, connectedCount: targetConns.length });
+        return posts;
+      });
+
+      const results = await Promise.all(feedTasks);
+      const existingPosts = results.flat();
+
+      return res.status(200).json({
+        success: true,
+        posts: existingPosts,
+        connectedCount: targetConns.length
+      });
     }
 
     // =========================================================================
-    // MODE B: FETCH OVERALL ANALYTICS & RETENTION INSIGHTS FROM ALL APIS
+    // MODE B: FETCH ANALYTICS & RETENTION INSIGHTS (PARALLEL & FAST)
     // =========================================================================
     if (mode === "analytics") {
       let summary = {
@@ -207,29 +305,52 @@ export default async function handler(req, res) {
         insights: []
       };
 
-      for (const conn of allConns) {
-        if (!conn.access_token) continue;
+      let apiWarnings = [];
+
+      const analyticsTasks = allConns.map(async (conn) => {
+        if (!conn.access_token) return;
+        const token = await ensureFreshToken(conn, GAS_URL, API_SECRET);
         const p = conn.platform;
         if (summary.byPlatform[p]) summary.byPlatform[p].connected = true;
 
         try {
           if (p === "YouTube") {
-            const chRes = await fetch("https://www.googleapis.com/youtube/v3/channels?part=statistics&mine=true", {
-              headers: { Authorization: `Bearer ${conn.access_token}` }
+            const chUrl = conn.platform_user_id
+              ? `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,contentDetails&id=${conn.platform_user_id}`
+              : "https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics,contentDetails&mine=true";
+
+            const chRes = await fetchWithTimeout(chUrl, {
+              headers: { Authorization: `Bearer ${token}` }
             });
             const chJson = await chRes.json();
-            const subs = parseInt(chJson.items?.[0]?.statistics?.subscriberCount || 0);
+            if (chJson.error) {
+              apiWarnings.push(`YouTube (${conn.username}): ${chJson.error.message}`);
+              return;
+            }
+            const channelItem = chJson.items?.[0];
+            if (!channelItem) {
+              apiWarnings.push(`YouTube (${conn.username}): Channel tidak ditemukan pada akun Google ini. Pastikan memilih Brand Account channel saat login OAuth.`);
+              return;
+            }
+
+            const subs = parseInt(channelItem.statistics?.subscriberCount || 0);
+            const chTotalViews = parseInt(channelItem.statistics?.viewCount || 0);
             summary.totalFollowers += subs;
             summary.byPlatform.YouTube.followers += subs;
 
-            const sRes = await fetch("https://www.googleapis.com/youtube/v3/search?part=id&forMine=true&type=video&order=date&maxResults=15", {
-              headers: { Authorization: `Bearer ${conn.access_token}` }
-            });
-            const sJson = await sRes.json();
-            const ids = (sJson.items || []).map(x => x.id?.videoId).filter(Boolean);
+            const uploadsId = channelItem.contentDetails?.relatedPlaylists?.uploads;
+            let ids = [];
+            if (uploadsId) {
+              const plRes = await fetchWithTimeout(`https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadsId}&maxResults=15`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              const plJson = await plRes.json();
+              ids = (plJson.items || []).map(x => x.contentDetails?.videoId).filter(Boolean);
+            }
+
             if (ids.length > 0) {
-              const vRes = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${ids.join(",")}`, {
-                headers: { Authorization: `Bearer ${conn.access_token}` }
+              const vRes = await fetchWithTimeout(`https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id=${ids.join(",")}`, {
+                headers: { Authorization: `Bearer ${token}` }
               });
               const vJson = await vRes.json();
               (vJson.items || []).forEach(v => {
@@ -258,26 +379,60 @@ export default async function handler(req, res) {
                   retention: estRetention + "%"
                 });
               });
+            } else if (chTotalViews > 0) {
+              summary.totalViews += chTotalViews;
+              summary.byPlatform.YouTube.views += chTotalViews;
             }
           }
 
-          if (p === "Instagram" && conn.platform_user_id) {
-            const profRes = await fetch(`https://graph.facebook.com/v21.0/${conn.platform_user_id}?fields=followers_count,media_count&access_token=${conn.access_token}`);
+          if (p === "Instagram") {
+            let igUserId = conn.platform_user_id;
+            // Jika platform_user_id kosong saat login awal, coba cari otomatis dari me/accounts
+            if (!igUserId) {
+              const pgRes = await fetchWithTimeout(`https://graph.facebook.com/v21.0/me/accounts?fields=instagram_business_account{id,username}&access_token=${conn.access_token}`);
+              const pgJson = await pgRes.json();
+              const linked = (pgJson.data || []).find(pg => pg.instagram_business_account);
+              if (linked) igUserId = linked.instagram_business_account.id;
+            }
+
+            if (!igUserId) {
+              apiWarnings.push(`Instagram (${conn.username}): Akun IG Business belum tertaut ke Facebook Page.`);
+              return;
+            }
+
+            const [profRes, mediaRes] = await Promise.all([
+              fetchWithTimeout(`https://graph.facebook.com/v21.0/${igUserId}?fields=followers_count,media_count&access_token=${conn.access_token}`),
+              fetchWithTimeout(`https://graph.facebook.com/v21.0/${igUserId}/media?fields=id,caption,like_count,comments_count,media_type&limit=10&access_token=${conn.access_token}`)
+            ]);
+
             const profJson = await profRes.json();
+            if (profJson.error) {
+              apiWarnings.push(`Instagram (${conn.username}): ${profJson.error.message}`);
+              return;
+            }
+
             const foll = parseInt(profJson.followers_count || 0);
             summary.totalFollowers += foll;
             summary.byPlatform.Instagram.followers += foll;
 
-            const mediaRes = await fetch(`https://graph.facebook.com/v21.0/${conn.platform_user_id}/media?fields=id,caption,like_count,comments_count,media_type&limit=15&access_token=${conn.access_token}`);
             const mediaJson = await mediaRes.json();
-            for (const m of (mediaJson.data || [])) {
-              let reach = 0;
-              try {
-                const insRes = await fetch(`https://graph.facebook.com/v21.0/${m.id}/insights?metric=reach&access_token=${conn.access_token}`);
-                const insJson = await insRes.json();
-                reach = parseInt(insJson.data?.[0]?.values?.[0]?.value || 0);
-              } catch (e) {}
+            const mediaItems = (mediaJson.data || []).slice(0, 6);
 
+            // Tarik reach secara PARALEL (bukan sequential loop) agar <1 detik
+            const reachResults = await Promise.all(
+              mediaItems.map(async (m) => {
+                try {
+                  const insRes = await fetchWithTimeout(`https://graph.facebook.com/v21.0/${m.id}/insights?metric=reach&access_token=${conn.access_token}`, {}, 2500);
+                  const insJson = await insRes.json();
+                  return parseInt(insJson.data?.[0]?.values?.[0]?.value || 0);
+                } catch (e) {
+                  return 0;
+                }
+              })
+            );
+
+            mediaItems.forEach((m, idx) => {
+              const reach = reachResults[idx] || 0;
               const likes = parseInt(m.like_count || 0);
               const comments = parseInt(m.comments_count || 0);
               const eng = likes + comments;
@@ -296,30 +451,43 @@ export default async function handler(req, res) {
               summary.topPosts.push({
                 platform: "Instagram",
                 brand: conn.brand_name,
-                title: (m.caption || "IG Media").slice(0, 55),
+                title: (m.caption || "Instagram Post").slice(0, 55),
                 views: reach,
                 engagement: eng,
                 er: er.toFixed(2) + "%",
                 retention: estRetention > 0 ? estRetention + "%" : "N/A"
               });
-            }
+            });
           }
 
           if (p === "TikTok") {
-            const uRes = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=follower_count,likes_count,video_count", {
-              headers: { Authorization: `Bearer ${conn.access_token}` }
-            });
+            const [uRes, vRes] = await Promise.all([
+              fetchWithTimeout("https://open.tiktokapis.com/v2/user/info/?fields=open_id,display_name,follower_count,likes_count,video_count", {
+                headers: { Authorization: `Bearer ${token}` }
+              }),
+              fetchWithTimeout("https://open.tiktokapis.com/v2/video/list/?fields=id,title,view_count,like_count,comment_count,share_count", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ max_count: 15 })
+              })
+            ]);
             const uJson = await uRes.json();
-            const foll = parseInt(uJson.data?.user?.follower_count || 0);
+            if (uJson.error && uJson.error.code !== "ok") {
+              apiWarnings.push(`TikTok (${conn.username}): ${uJson.error.message} — Klik tombol × lalu Hubungkan ulang TikTok untuk izin user.info.stats & video.list.`);
+              return;
+            }
+            const userData = uJson.data?.user || {};
+            if (userData.follower_count === undefined) {
+              apiWarnings.push(`TikTok (${conn.username}): Token lama belum memiliki izin 'user.info.stats'. Silakan klik × di sidebar lalu klik Hubungkan TikTok ulang.`);
+            }
+            const foll = parseInt(userData.follower_count || 0);
             summary.totalFollowers += foll;
             summary.byPlatform.TikTok.followers += foll;
 
-            const vRes = await fetch("https://open.tiktokapis.com/v2/video/list/?fields=id,title,view_count,like_count,comment_count,share_count", {
-              method: "POST",
-              headers: { Authorization: `Bearer ${conn.access_token}`, "Content-Type": "application/json" },
-              body: JSON.stringify({ max_count: 15 })
-            });
             const vJson = await vRes.json();
+            if (vJson.error && vJson.error.code !== "ok") {
+              apiWarnings.push(`TikTok Videos (${conn.username}): ${vJson.error.message}`);
+            }
             (vJson.data?.videos || []).forEach(v => {
               const views = parseInt(v.view_count || 0);
               const likes = parseInt(v.like_count || 0);
@@ -351,8 +519,12 @@ export default async function handler(req, res) {
           }
 
           if (p === "Threads") {
-            const thIns = await fetch(`https://graph.threads.net/v1.0/me/threads_insights?metric=views,likes,replies,reposts,followers_count&access_token=${conn.access_token}`);
+            const thIns = await fetchWithTimeout(`https://graph.threads.net/v1.0/me/threads_insights?metric=views,likes,replies,reposts,followers_count&access_token=${conn.access_token}`);
             const thJson = await thIns.json();
+            if (thJson.error) {
+              apiWarnings.push(`Threads (${conn.username}): ${thJson.error.message}`);
+              return;
+            }
             (thJson.data || []).forEach(m => {
               const val = parseInt(m.total_value?.value || m.values?.[0]?.value || 0);
               if (m.name === "followers_count") {
@@ -370,10 +542,12 @@ export default async function handler(req, res) {
               }
             });
           }
-        } catch (platErr) {
-          console.error(`Analytics error on ${p}:`, platErr.message);
+        } catch (err) {
+          apiWarnings.push(`${p} (${conn.username}): ${err.message}`);
         }
-      }
+      });
+
+      await Promise.all(analyticsTasks);
 
       const totalEng = summary.totalLikes + summary.totalComments + summary.totalShares;
       summary.avgEngagementRate = summary.totalViews > 0 ? ((totalEng / summary.totalViews) * 100).toFixed(2) : "0.00";
@@ -384,33 +558,33 @@ export default async function handler(req, res) {
       summary.topPosts.sort((a, b) => b.views - a.views);
       summary.topPosts = summary.topPosts.slice(0, 10);
 
+      if (apiWarnings.length > 0) {
+        apiWarnings.forEach(w => summary.insights.push(`⚠️ ${w}`));
+      }
       if (summary.topPosts.length > 0) {
         summary.insights.push(`Konten performa tertinggi: "${summary.topPosts[0].title}" di ${summary.topPosts[0].platform} (${summary.topPosts[0].views.toLocaleString()} views, ER ${summary.topPosts[0].er}).`);
       }
       if (summary.avgRetentionScore > 0) {
-        summary.insights.push(`Rata-rata Hook & Watch Retention lintas platform: ${summary.avgRetentionScore}% — ${summary.avgRetentionScore >= 65 ? "Sangat kuat, pertahankan pola 3 detik pertama!" : "Perkuat visual hook di 3 detik awal untuk mendongkrak retensi."}`);
+        summary.insights.push(`Rata-rata Hook & Watch Retention lintas platform: ${summary.avgRetentionScore}% — ${summary.avgRetentionScore >= 65 ? "Sangat kuat, pertahankan pola 3 detik pertama!" : "Perkuat visual hook di 3 detik awal."}`);
       }
       if (allConns.length === 0) {
-        summary.insights.push("Belum ada akun OAuth yang terhubung pada brand ini. Klik 'Hubungkan' di panel kiri untuk menarik analitik live.");
-      } else if (summary.topPosts.length === 0) {
-        summary.insights.push("Akun sudah terhubung, namun belum ditemukan data metrik video/post terbaru dari API platform.");
+        summary.insights.push("Belum ada akun OAuth berstatus Connected untuk brand ini. Klik 'Hubungkan' di panel kiri.");
       }
 
       return res.status(200).json({ success: true, summary });
     }
 
     // =========================================================================
-    // MODE C: SYNC UNIFIED INBOX COMMENTS FROM ALL CONNECTED PLATFORMS
+    // MODE C: SYNC UNIFIED INBOX COMMENTS (PARALLEL)
     // =========================================================================
     if (mode === "sync_inbox") {
-      let fetchedComments = [];
-
-      for (const conn of allConns) {
-        if (!conn.access_token) continue;
+      const inboxTasks = allConns.map(async (conn) => {
+        if (!conn.access_token) return [];
+        const list = [];
 
         try {
           if (conn.platform === "YouTube" && conn.platform_user_id) {
-            const cRes = await fetch(
+            const cRes = await fetchWithTimeout(
               `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&allThreadsRelatedToChannelId=${conn.platform_user_id}&maxResults=15`,
               { headers: { Authorization: `Bearer ${conn.access_token}` } }
             );
@@ -418,7 +592,7 @@ export default async function handler(req, res) {
             (cJson.items || []).forEach(item => {
               const top = item.snippet?.topLevelComment;
               if (top) {
-                fetchedComments.push({
+                list.push({
                   msg_id: top.id,
                   brand_name: conn.brand_name,
                   platform: "YouTube",
@@ -433,11 +607,11 @@ export default async function handler(req, res) {
           }
 
           if (conn.platform === "Instagram" && conn.platform_user_id) {
-            const mRes = await fetch(`https://graph.facebook.com/v21.0/${conn.platform_user_id}/media?fields=id,caption,comments{id,text,username,timestamp}&limit=5&access_token=${conn.access_token}`);
+            const mRes = await fetchWithTimeout(`https://graph.facebook.com/v21.0/${conn.platform_user_id}/media?fields=id,caption,comments{id,text,username,timestamp}&limit=5&access_token=${conn.access_token}`);
             const mJson = await mRes.json();
             (mJson.data || []).forEach(m => {
               (m.comments?.data || []).forEach(cm => {
-                fetchedComments.push({
+                list.push({
                   msg_id: cm.id,
                   brand_name: conn.brand_name,
                   platform: "Instagram",
@@ -452,13 +626,14 @@ export default async function handler(req, res) {
           }
 
           if (conn.platform === "Threads") {
-            const thRes = await fetch(`https://graph.threads.net/v1.0/me/threads?fields=id,text&limit=5&access_token=${conn.access_token}`);
+            const thRes = await fetchWithTimeout(`https://graph.threads.net/v1.0/me/threads?fields=id,text&limit=5&access_token=${conn.access_token}`);
             const thJson = await thRes.json();
-            for (const t of (thJson.data || [])) {
-              const repRes = await fetch(`https://graph.threads.net/v1.0/${t.id}/replies?fields=id,text,username,timestamp&access_token=${conn.access_token}`);
+            const threads = thJson.data || [];
+            await Promise.all(threads.map(async (t) => {
+              const repRes = await fetchWithTimeout(`https://graph.threads.net/v1.0/${t.id}/replies?fields=id,text,username,timestamp&access_token=${conn.access_token}`);
               const repJson = await repRes.json();
               (repJson.data || []).forEach(r => {
-                fetchedComments.push({
+                list.push({
                   msg_id: r.id,
                   brand_name: conn.brand_name,
                   platform: "Threads",
@@ -469,15 +644,19 @@ export default async function handler(req, res) {
                   received_at: r.timestamp
                 });
               });
-            }
+            }));
           }
-        } catch (platErr) {
-          console.error(`Inbox sync error on ${conn.platform}:`, platErr.message);
+        } catch (err) {
+          console.error(`Inbox ${conn.platform} error:`, err.message);
         }
-      }
+
+        return list;
+      });
+
+      const fetchedComments = (await Promise.all(inboxTasks)).flat();
 
       if (fetchedComments.length > 0) {
-        await fetch(GAS_URL, {
+        await fetchWithTimeout(GAS_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -501,28 +680,28 @@ export default async function handler(req, res) {
       if (conn && conn.access_token && msgId) {
         try {
           if (platform === "YouTube") {
-            const r = await fetch("https://www.googleapis.com/youtube/v3/comments?part=snippet", {
+            const r = await fetchWithTimeout("https://www.googleapis.com/youtube/v3/comments?part=snippet", {
               method: "POST",
               headers: { Authorization: `Bearer ${conn.access_token}`, "Content-Type": "application/json" },
               body: JSON.stringify({ snippet: { parentId: msgId, textOriginal: replyText } })
             });
             if (r.ok) apiSent = true;
           } else if (platform === "Instagram") {
-            const r = await fetch(`https://graph.facebook.com/v21.0/${msgId}/replies`, {
+            const r = await fetchWithTimeout(`https://graph.facebook.com/v21.0/${msgId}/replies`, {
               method: "POST",
               headers: { "Content-Type": "application/x-www-form-urlencoded" },
               body: new URLSearchParams({ message: replyText, access_token: conn.access_token })
             });
             if (r.ok) apiSent = true;
           } else if (platform === "Threads") {
-            const createRes = await fetch(`https://graph.threads.net/v1.0/me/threads`, {
+            const createRes = await fetchWithTimeout(`https://graph.threads.net/v1.0/me/threads`, {
               method: "POST",
               headers: { "Content-Type": "application/x-www-form-urlencoded" },
               body: new URLSearchParams({ media_type: "TEXT", text: replyText, reply_to_id: msgId, access_token: conn.access_token })
             });
             const createJson = await createRes.json();
             if (createJson.id) {
-              await fetch(`https://graph.threads.net/v1.0/me/threads_publish`, {
+              await fetchWithTimeout(`https://graph.threads.net/v1.0/me/threads_publish`, {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: new URLSearchParams({ creation_id: createJson.id, access_token: conn.access_token })
@@ -531,11 +710,11 @@ export default async function handler(req, res) {
             }
           }
         } catch (repErr) {
-          console.error(`Reply API error on ${platform}:`, repErr.message);
+          console.error(`Reply error on ${platform}:`, repErr.message);
         }
       }
 
-      await fetch(GAS_URL, {
+      await fetchWithTimeout(GAS_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
