@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ContentPlan Enterprise v3.0</title>
+    <title>ContentPlan Enterprise v3.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -19,7 +19,7 @@
         .apple-input:focus { background: #FFFFFF; border-color: #007AFF; box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
         .apple-label { display: block; font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
 
-        .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 11px; font-size: 13.5px; font-weight: 500; color: #4B5563; cursor: pointer; transition: 0.15s; }
+        .nav-item { display: flex; align-items: center; gap: 11px; padding: 9.5px 12px; border-radius: 11px; font-size: 13.5px; font-weight: 500; color: #4B5563; cursor: pointer; transition: 0.15s; }
         .nav-item:hover { background: #F3F4F6; color: #111827; }
         .nav-active { background: #EFF6FF !important; color: #007AFF !important; font-weight: 700; }
 
@@ -67,6 +67,7 @@
         <div class="flex-1 overflow-y-auto py-3 px-3 space-y-0.5">
             <a onclick="navigate('swipe')" id="nav-swipe" class="nav-item bg-gray-900 text-white hover:bg-gray-800 hover:text-white font-bold mb-2"><i class="ph-fill ph-sparkle text-lg"></i> Swipe (Batch AI)</a>
             <a onclick="navigate('calendar')" id="nav-calendar" class="nav-item nav-active"><i class="ph ph-calendar-blank text-lg"></i> Kalender</a>
+            <a onclick="navigate('feeds')" id="nav-feeds" class="nav-item"><i class="ph ph-squares-four text-lg"></i> Feeds & Grid</a>
             <a onclick="navigate('composer')" id="nav-composer" class="nav-item"><i class="ph ph-magic-wand text-lg"></i> Buat Post</a>
             <a onclick="navigate('brandcontext')" id="nav-brandcontext" class="nav-item"><i class="ph ph-brain text-lg"></i> Learning & Brand DNA</a>
             <a onclick="navigate('inbox')" id="nav-inbox" class="nav-item flex justify-between">
@@ -77,34 +78,17 @@
             <a onclick="navigate('assets')" id="nav-assets" class="nav-item"><i class="ph ph-images text-lg"></i> Aset & Drive</a>
             <a onclick="navigate('settings')" id="nav-settings" class="nav-item"><i class="ph ph-gear text-lg"></i> Pengaturan & Slot</a>
 
-            <!-- QUICK OAUTH PANEL ("Posting ke") - Langsung Tampil & Diperbarui Otomatis -->
-            <div class="mt-6 pt-4 border-t border-gray-100 px-1">
+            <!-- QUICK OAUTH PANEL ("Posting ke") DENGAN NAMA AKUN & TOMBOL CANCEL HUBUNGKAN -->
+            <div class="mt-5 pt-4 border-t border-gray-100 px-1">
                 <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Posting ke (OAuth)</p>
-                <div class="space-y-2" id="sidebar-oauth-list">
-                    <div class="flex items-center justify-between py-1 px-1">
-                        <span class="text-xs font-medium text-gray-600 flex items-center gap-2"><i class="ph ph-instagram-logo text-base"></i> Instagram</span>
-                        <button type="button" onclick="connectOAuthPlatform('Instagram')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
-                    </div>
-                    <div class="flex items-center justify-between py-1 px-1">
-                        <span class="text-xs font-medium text-gray-600 flex items-center gap-2"><i class="ph ph-tiktok-logo text-base"></i> TikTok</span>
-                        <button type="button" onclick="connectOAuthPlatform('TikTok')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
-                    </div>
-                    <div class="flex items-center justify-between py-1 px-1">
-                        <span class="text-xs font-medium text-gray-600 flex items-center gap-2"><i class="ph ph-at text-base"></i> Threads</span>
-                        <button type="button" onclick="connectOAuthPlatform('Threads')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
-                    </div>
-                    <div class="flex items-center justify-between py-1 px-1">
-                        <span class="text-xs font-medium text-gray-600 flex items-center gap-2"><i class="ph ph-youtube-logo text-base"></i> YouTube</span>
-                        <button type="button" onclick="connectOAuthPlatform('YouTube')" class="bg-gray-900 hover:bg-black text-white text-[11px] font-bold px-3 py-1 rounded-full cursor-pointer">Hubungkan</button>
-                    </div>
-                </div>
+                <div class="space-y-2.5" id="sidebar-oauth-list"></div>
             </div>
         </div>
 
         <div class="p-4 border-t border-gray-100 bg-gray-50/70">
             <div class="flex items-center justify-between text-xs">
                 <span class="font-bold text-gray-700 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-500" id="sync-status-dot"></span> <span id="sync-status-text">Vercel Edge Live</span></span>
-                <span class="text-gray-400 font-mono">v3.0</span>
+                <span class="text-gray-400 font-mono">v3.5</span>
             </div>
         </div>
     </aside>
@@ -164,7 +148,50 @@
                 </div>
             </div>
 
-            <!-- 2. VIEW: SWIPE (BATCH GENERATOR) -->
+            <!-- 2. VIEW: FEEDS & GRID PREVIEW (SYNCED WITH CALENDAR + LIVE PLATFORM API) -->
+            <div id="view-feeds" class="view-section hidden max-w-5xl mx-auto space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Feeds & Visual Grid</h2>
+                        <p class="text-xs text-gray-500">Pratinjau susunan feed (gabungan jadwal Kalender & postingan yang sudah live di platform).</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="bg-white border border-gray-200 rounded-full p-1 flex gap-1 shadow-sm">
+                            <button type="button" onclick="setFeedPlatform('Instagram')" id="feed-tab-Instagram" class="bg-gray-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer">Instagram</button>
+                            <button type="button" onclick="setFeedPlatform('TikTok')" id="feed-tab-TikTok" class="text-gray-600 hover:bg-gray-100 px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer">TikTok</button>
+                            <button type="button" onclick="setFeedPlatform('YouTube')" id="feed-tab-YouTube" class="text-gray-600 hover:bg-gray-100 px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer">YouTube</button>
+                            <button type="button" onclick="setFeedPlatform('Threads')" id="feed-tab-Threads" class="text-gray-600 hover:bg-gray-100 px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer">Threads</button>
+                        </div>
+                        <button type="button" onclick="fetchLivePlatformFeeds(true)" id="btn-sync-feeds" class="apple-btn px-4 py-2 text-xs flex items-center gap-1.5">
+                            <i class="ph ph-cloud-arrow-down"></i> Tarik Feeds API
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Profile Header Mockup -->
+                <div class="apple-card p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-2xl font-extrabold shadow-md" id="feed-profile-avatar">B</div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-extrabold text-lg text-gray-900" id="feed-profile-name">@BaconFiles</h3>
+                                <span id="feed-conn-badge" class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full">Belum Terhubung</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-0.5" id="feed-profile-bio">Menampilkan antrean terjadwal (Kalender) + postingan live dari API.</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openNewComposerPostForFeed()" class="bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+                        <i class="ph ph-plus"></i> Tambah ke Feed Ini
+                    </button>
+                </div>
+
+                <!-- Grid / Feed Container -->
+                <div id="feeds-grid-container" class="grid grid-cols-3 gap-2 md:gap-4">
+                    <!-- Rendered via JS -->
+                </div>
+            </div>
+
+            <!-- 3. VIEW: SWIPE (BATCH GENERATOR) -->
             <div id="view-swipe" class="view-section hidden max-w-4xl mx-auto">
                 <div class="apple-card p-6 md:p-10 text-center">
                     <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-gray-800"><i class="ph ph-magic-wand"></i></div>
@@ -210,7 +237,7 @@
                 </div>
             </div>
 
-            <!-- 3. VIEW: BUAT POST (SPLIT-SCREEN COMPOSER + LIVE PREVIEW) -->
+            <!-- 4. VIEW: BUAT POST (SPLIT-SCREEN COMPOSER + LIVE PREVIEW) -->
             <div id="view-composer" class="view-section hidden max-w-7xl mx-auto">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     <!-- Kiri: Antrean -->
@@ -338,14 +365,17 @@
                 </div>
             </div>
 
-            <!-- 4. VIEW: BALASAN (UNIFIED COMMENT INBOX) -->
+            <!-- 5. VIEW: BALASAN (UNIFIED COMMENT INBOX SYNCED WITH ALL APIS) -->
             <div id="view-inbox" class="view-section hidden max-w-4xl mx-auto space-y-5">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
                         <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Balasan</h2>
-                        <p class="text-xs text-gray-500">Balas komentar dari YouTube, TikTok, Instagram, dan Threads dalam satu antrean.</p>
+                        <p class="text-xs text-gray-500">Tarik komentar terbaru & balas langsung ke YouTube, Instagram, dan Threads.</p>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="syncInboxFromApis()" id="btn-sync-inbox" class="apple-btn px-4 py-2 rounded-full text-xs flex items-center gap-1.5">
+                            <i class="ph ph-arrows-clockwise"></i> Sinkronkan Komentar API
+                        </button>
                         <button type="button" onclick="setInboxFilter('Unreplied')" id="tab-inbox-unreplied" class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold">Belum dibales</button>
                         <button type="button" onclick="setInboxFilter('Replied')" id="tab-inbox-replied" class="apple-btn-secondary px-4 py-2 rounded-full text-xs font-bold">Sudah dibales</button>
                     </div>
@@ -353,18 +383,67 @@
                 <div id="inbox-list-container" class="space-y-3"></div>
             </div>
 
-            <!-- 5. VIEW: ANALITIK -->
-            <div id="view-analytics" class="view-section hidden max-w-5xl mx-auto space-y-6">
-                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Performa akun</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="apple-card p-5"><p class="text-xs font-bold text-gray-400 uppercase">Total Konten</p><h3 id="an-total" class="text-3xl font-extrabold mt-2">0</h3></div>
-                    <div class="apple-card p-5"><p class="text-xs font-bold text-gray-400 uppercase">Siap Auto-Publish</p><h3 id="an-ready" class="text-3xl font-extrabold text-blue-600 mt-2">0</h3></div>
-                    <div class="apple-card p-5"><p class="text-xs font-bold text-gray-400 uppercase">Published</p><h3 id="an-pub" class="text-3xl font-extrabold text-green-600 mt-2">0</h3></div>
-                    <div class="apple-card p-5"><p class="text-xs font-bold text-gray-400 uppercase">Akun Terhubung</p><h3 id="an-conn" class="text-3xl font-extrabold text-purple-600 mt-2">0</h3></div>
+            <!-- 6. VIEW: ANALITIK & INSIGHT RETENTION LINTAS PLATFORM -->
+            <div id="view-analytics" class="view-section hidden max-w-6xl mx-auto space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Performa & Insight Retensi</h2>
+                        <p class="text-xs text-gray-500">Data metrik keseluruhan & retensi audiens yang ditarik langsung dari API akun terhubung.</p>
+                    </div>
+                    <button type="button" onclick="fetchLiveAnalytics(true)" id="btn-sync-analytics" class="bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
+                        <i class="ph ph-chart-line-up"></i> Tarik Data API Terbaru
+                    </button>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div class="apple-card p-5"><p class="text-[11px] font-bold text-gray-400 uppercase">Total Followers</p><h3 id="an-followers" class="text-2xl md:text-3xl font-extrabold mt-2">0</h3></div>
+                    <div class="apple-card p-5"><p class="text-[11px] font-bold text-gray-400 uppercase">Total Views / Reach</p><h3 id="an-views" class="text-2xl md:text-3xl font-extrabold text-blue-600 mt-2">0</h3></div>
+                    <div class="apple-card p-5"><p class="text-[11px] font-bold text-gray-400 uppercase">Total Interaksi</p><h3 id="an-eng" class="text-2xl md:text-3xl font-extrabold text-purple-600 mt-2">0</h3></div>
+                    <div class="apple-card p-5"><p class="text-[11px] font-bold text-gray-400 uppercase">Engagement Rate</p><h3 id="an-er" class="text-2xl md:text-3xl font-extrabold text-green-600 mt-2">0%</h3></div>
+                    <div class="apple-card p-5 border border-indigo-100 bg-indigo-50/30"><p class="text-[11px] font-bold text-indigo-600 uppercase">Hook Retention</p><h3 id="an-retention" class="text-2xl md:text-3xl font-extrabold text-indigo-700 mt-2">0%</h3></div>
+                </div>
+
+                <!-- Platform Breakdown Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="an-platform-cards"></div>
+
+                <!-- Charts & AI Insights -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-7 apple-card p-6">
+                        <h4 class="font-bold text-base text-gray-900 mb-1">Perbandingan Views & Interaksi Antar Platform</h4>
+                        <p class="text-xs text-gray-500 mb-4">Agregasi langsung dari YouTube, Instagram, TikTok, dan Threads</p>
+                        <div class="relative h-64"><canvas id="anPlatformChart"></canvas></div>
+                    </div>
+                    <div class="lg:col-span-5 apple-card p-6 space-y-4">
+                        <h4 class="font-bold text-base text-gray-900 flex items-center gap-2"><i class="ph-fill ph-sparkle text-indigo-600"></i> Insight Retensi & Pertumbuhan</h4>
+                        <div id="an-insights-list" class="space-y-2.5 text-xs text-gray-700"></div>
+                    </div>
+                </div>
+
+                <!-- Top Performing Content Table -->
+                <div class="apple-card overflow-hidden">
+                    <div class="p-5 border-b border-gray-100">
+                        <h4 class="font-bold text-base text-gray-900">Top Performing Content (Live API)</h4>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-gray-50 text-gray-500 uppercase font-bold border-b border-gray-100">
+                                <tr>
+                                    <th class="p-4">Platform</th>
+                                    <th class="p-4">Judul Konten</th>
+                                    <th class="p-4">Views / Reach</th>
+                                    <th class="p-4">Interaksi</th>
+                                    <th class="p-4">ER</th>
+                                    <th class="p-4">Est. Retention</th>
+                                </tr>
+                            </thead>
+                            <tbody id="an-top-posts-body" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- 6. VIEW: ASET & GOOGLE DRIVE -->
+            <!-- 7. VIEW: ASET & GOOGLE DRIVE -->
             <div id="view-assets" class="view-section hidden max-w-5xl mx-auto space-y-6">
                 <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Perpustakaan aset</h2>
                 <div class="apple-card p-8 border-2 border-dashed border-gray-300 hover:border-blue-500 transition text-center bg-white relative">
@@ -382,7 +461,7 @@
                 <div id="assets-gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
             </div>
 
-            <!-- 7. VIEW: LEARNING & BRAND DNA -->
+            <!-- 8. VIEW: LEARNING & BRAND DNA -->
             <div id="view-brandcontext" class="view-section hidden max-w-5xl mx-auto space-y-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
@@ -396,7 +475,7 @@
                 <div id="brand-context-cards" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
             </div>
 
-            <!-- 8. VIEW: PENGATURAN & SLOT POSTING + OAUTH -->
+            <!-- 9. VIEW: PENGATURAN & SLOT POSTING + OAUTH -->
             <div id="view-settings" class="view-section hidden max-w-5xl mx-auto space-y-6">
                 <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Akun & brand</h2>
 
@@ -450,7 +529,7 @@
             <div><label class="apple-label">Formula Hook Andalan (1 baris per template, gunakan {topic} / {num})</label><textarea id="bc-hooks" rows="3" class="apple-input font-mono text-xs" placeholder="Part {num}: Rahasia di balik {topic}&#10;Kenapa {topic} jarang diketahui orang?"></textarea></div>
             <div><label class="apple-label">Core Hook / Deskripsi Produk Utama</label><textarea id="bc-hook" rows="2" class="apple-input" placeholder="Jelaskan inti cerita atau produk utama brand ini..."></textarea></div>
 
-            <!-- PILLAR BATCH LEARNING (Untuk Swipe Batch AI) -->
+            <!-- PILLAR BATCH LEARNING -->
             <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
                 <div>
                     <h4 class="text-xs font-extrabold text-gray-900 uppercase tracking-wider flex items-center gap-1.5"><i class="ph-fill ph-sparkle text-indigo-600"></i> Pillar Batch Learning (Acuan Menu Swipe)</h4>
@@ -474,7 +553,7 @@
     </div>
 
     <script>
-        const ALL_VIEWS = ['calendar', 'swipe', 'composer', 'inbox', 'analytics', 'assets', 'brandcontext', 'settings'];
+        const ALL_VIEWS = ['calendar', 'feeds', 'swipe', 'composer', 'inbox', 'analytics', 'assets', 'brandcontext', 'settings'];
         let state = {
             activeBrand: 'ALL',
             brands: [],
@@ -484,12 +563,15 @@
             connections: [],
             inbox: [],
             inboxFilter: 'Unreplied',
+            feedPlatform: 'Instagram',
+            liveFeeds: [],
+            liveAnalytics: null,
             calYear: 2026,
             calMonth: 10,
             selectedPillars: []
         };
+        let anChartInstance = null;
 
-        // --- API PROXY HELPERS ---
         async function apiGet(endpoint) {
             try {
                 const res = await fetch(`/api/gas-proxy?api=${encodeURIComponent(endpoint)}`);
@@ -540,13 +622,12 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            // Render UI dasar seketika agar OAuth bar & Kalender selalu tampil sebelum sync selesai
             renderSidebarOAuth();
             renderSettingsOAuthCards();
             renderCalendar();
+            renderFeedsView();
 
             const params = new URLSearchParams(window.location.search);
-            // Tangkap callback Instagram Unified Login yang kembali ke root URL (/?code=...&state=...)
             if (params.get('code') && params.get('state')) {
                 window.location.href = `/api/oauth?code=${encodeURIComponent(params.get('code'))}&state=${encodeURIComponent(params.get('state'))}`;
                 return;
@@ -559,7 +640,7 @@
             } else if (params.get('oauth_error')) {
                 const banner = document.getElementById('oauth-banner');
                 banner.className = "bg-red-600 text-white text-xs font-bold px-6 py-2.5 flex justify-between items-center";
-                document.getElementById('oauth-banner-text').innerText = `Info OAuth: ${params.get('oauth_error')} (Set Environment Variable di Vercel)`;
+                document.getElementById('oauth-banner-text').innerText = `Info OAuth: ${params.get('oauth_error')}`;
                 banner.classList.remove('hidden');
                 window.history.replaceState({}, document.title, "/");
             }
@@ -592,6 +673,12 @@
             populateBrandDropdowns();
             populateComposerAssetDropdown();
             refreshAllViews();
+
+            // Otomatis tarik feeds & analitik live jika ada akun terhubung
+            if (state.connections.length > 0) {
+                fetchLivePlatformFeeds(false);
+                fetchLiveAnalytics(false);
+            }
         }
 
         function navigate(viewName) {
@@ -607,7 +694,7 @@
             if (targetView) targetView.classList.remove('hidden');
 
             const titles = {
-                swipe: 'Swipe (Batch AI)', calendar: 'Kalender', composer: 'Buat Post', inbox: 'Balasan',
+                swipe: 'Swipe (Batch AI)', calendar: 'Kalender', feeds: 'Feeds & Grid', composer: 'Buat Post', inbox: 'Balasan',
                 analytics: 'Analitik', assets: 'Aset', brandcontext: 'Learning & Brand DNA', settings: 'Pengaturan'
             };
             document.getElementById('header-title').innerText = titles[viewName] || viewName;
@@ -644,6 +731,10 @@
                 });
             }
             refreshAllViews();
+            if (state.connections.length > 0) {
+                fetchLivePlatformFeeds(false);
+                fetchLiveAnalytics(false);
+            }
         }
 
         function getFilteredContents() {
@@ -652,6 +743,7 @@
 
         function refreshAllViews() {
             renderCalendar();
+            renderFeedsView();
             renderComposerQueue();
             renderSidebarOAuth();
             renderSettingsOAuthCards();
@@ -659,7 +751,7 @@
             renderSlotMatrix();
             renderBrandContextCards();
             renderAssetsGallery();
-            updateAnalyticsKPI();
+            renderAnalyticsDashboard();
             updateLivePreview();
             updateSwipeDNAIndicator();
         }
@@ -674,7 +766,9 @@
             }
         }
 
-        // --- OAUTH CONNECTIONS ("Posting ke") ---
+        // =========================================================================
+        // OAUTH CONNECTIONS ("Posting ke") — TAMPILKAN AKUN SAAT ALL BRANDS + TOMBOL CANCEL
+        // =========================================================================
         function connectOAuthPlatform(platform) {
             const targetBrand = state.activeBrand === 'ALL'
                 ? (state.brands[0] ? state.brands[0].brand_name : 'Bacon Files')
@@ -682,10 +776,14 @@
             window.location.href = `/api/oauth?action=connect&platform=${encodeURIComponent(platform)}&brand=${encodeURIComponent(targetBrand)}`;
         }
 
-        async function disconnectOAuth(connId) {
-            await apiPost('disconnect_oauth', { connId });
-            showToast("Koneksi OAuth diputuskan.");
-            bootstrapApp();
+        async function disconnectOAuth(connId, platformName) {
+            const res = await apiPost('disconnect_oauth', { connId });
+            if (res.success) {
+                showToast(`Koneksi ${platformName || 'OAuth'} berhasil dibatalkan!`);
+                bootstrapApp();
+            } else {
+                showToast("Gagal memutuskan koneksi: " + (res.error || "Error"), true);
+            }
         }
 
         function renderSidebarOAuth() {
@@ -700,14 +798,30 @@
             container.innerHTML = '';
 
             platforms.forEach(p => {
-                const conn = state.connections.find(c =>
+                const matchingConns = state.connections.filter(c =>
                     c.platform === p.name && (state.activeBrand === 'ALL' || c.brand_name === state.activeBrand)
                 );
-                if (conn) {
+
+                if (matchingConns.length > 0) {
+                    const accountBadges = matchingConns.map(c => {
+                        const label = state.activeBrand === 'ALL'
+                            ? `${c.username} (${c.brand_name})`
+                            : c.username;
+                        return `
+                            <div class="flex items-center justify-between gap-1 bg-green-50 border border-green-200 text-green-800 rounded-lg px-2 py-1 mt-1">
+                                <span class="text-[10px] font-bold truncate" title="${label}">✓ ${label}</span>
+                                <button type="button" onclick="disconnectOAuth('${c.conn_id}', '${p.name}')" class="text-red-500 hover:text-red-700 font-extrabold text-xs px-1 cursor-pointer" title="Batalkan / Putuskan koneksi ${c.username}">×</button>
+                            </div>
+                        `;
+                    }).join('');
+
                     container.innerHTML += `
-                        <div class="flex items-center justify-between py-1 px-1">
-                            <span class="text-xs font-semibold text-gray-700 flex items-center gap-2"><i class="ph ${p.icon} text-base"></i> ${p.name}</span>
-                            <span class="text-[10px] font-bold bg-green-100 text-green-700 px-2.5 py-1 rounded-full">Terhubung</span>
+                        <div class="py-1 px-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-gray-800 flex items-center gap-2"><i class="ph-fill ${p.icon} text-base text-green-600"></i> ${p.name}</span>
+                                <button type="button" onclick="connectOAuthPlatform('${p.name}')" class="text-[10px] font-bold text-blue-600 hover:underline cursor-pointer">+ Akun</button>
+                            </div>
+                            ${accountBadges}
                         </div>
                     `;
                 } else {
@@ -736,19 +850,201 @@
                         <div class="flex justify-between items-center">
                             <h4 class="font-bold text-base text-gray-900">Koneksi ${p}</h4>
                             ${conn
-                                ? `<button type="button" onclick="disconnectOAuth('${conn.conn_id}')" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">Putuskan (${conn.username})</button>`
+                                ? `<button type="button" onclick="disconnectOAuth('${conn.conn_id}', '${p}')" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">Cancel Hubungkan (${conn.username})</button>`
                                 : `<button type="button" onclick="connectOAuthPlatform('${p}')" class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold cursor-pointer">Hubungkan ${p}</button>`
                             }
                         </div>
                         <p class="text-xs text-gray-500 leading-relaxed">
-                            Sekali tersambung via OAuth 2.0 Vercel, sistem otomatis mem-publish post berstatus <strong>Ready</strong> sesuai slot jadwal Anda.
+                            Sekali tersambung via OAuth 2.0, sistem otomatis menarik feeds, metrik analitik, komentar masuk, dan auto-publish sesuai slot jadwal.
                         </p>
                     </div>
                 `;
             });
         }
 
-        // --- UNIFIED INBOX ("Balasan") ---
+        // =========================================================================
+        // FEEDS & GRID PREVIEW (SYNCED WITH CALENDAR + EXISTING LIVE API POSTS)
+        // =========================================================================
+        function setFeedPlatform(plat) {
+            state.feedPlatform = plat;
+            ['Instagram', 'TikTok', 'YouTube', 'Threads'].forEach(p => {
+                const btn = document.getElementById('feed-tab-' + p);
+                if (!btn) return;
+                btn.className = p === plat
+                    ? 'bg-gray-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer'
+                    : 'text-gray-600 hover:bg-gray-100 px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer';
+            });
+            renderFeedsView();
+            fetchLivePlatformFeeds(false);
+        }
+
+        async function fetchLivePlatformFeeds(showNotif = true) {
+            const btn = document.getElementById('btn-sync-feeds');
+            if (btn) { btn.innerText = "Menarik Feeds..."; btn.disabled = true; }
+
+            try {
+                const res = await fetch(`/api/social-sync?mode=feeds&brand=${encodeURIComponent(state.activeBrand)}&platform=${encodeURIComponent(state.feedPlatform)}`);
+                const json = await res.json();
+                if (json.success) {
+                    state.liveFeeds = json.posts || [];
+                    renderFeedsView();
+                    if (showNotif) showToast(`Berhasil menarik ${state.liveFeeds.length} post dari ${state.feedPlatform}!`);
+                } else if (showNotif) {
+                    showToast("Gagal menarik feeds: " + (json.error || "Cek koneksi OAuth"), true);
+                }
+            } catch (e) {
+                if (showNotif) showToast("Error koneksi API: " + e.message, true);
+            } finally {
+                if (btn) { btn.innerHTML = `<i class="ph ph-cloud-arrow-down"></i> Tarik Feeds API`; btn.disabled = false; }
+            }
+        }
+
+        function openNewComposerPostForFeed() {
+            openNewComposerPost();
+            document.getElementById('comp-platform').value = state.feedPlatform;
+            updateLivePreview();
+        }
+
+        function renderFeedsView() {
+            const grid = document.getElementById('feeds-grid-container');
+            if (!grid) return;
+
+            const conn = state.connections.find(c =>
+                c.platform === state.feedPlatform && (state.activeBrand === 'ALL' || c.brand_name === state.activeBrand)
+            );
+            const brandLabel = state.activeBrand === 'ALL' ? 'All Brands' : state.activeBrand;
+
+            document.getElementById('feed-profile-name').innerText = conn ? conn.username : `@${brandLabel.replace(/\s+/g, '')} (${state.feedPlatform})`;
+            document.getElementById('feed-profile-avatar').innerText = brandLabel.charAt(0).toUpperCase();
+            const badge = document.getElementById('feed-conn-badge');
+            if (conn) {
+                badge.innerText = `✓ Terhubung (${conn.brand_name})`;
+                badge.className = "text-[10px] font-bold bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full";
+            } else {
+                badge.innerText = "Belum Terhubung OAuth";
+                badge.className = "text-[10px] font-bold bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full";
+            }
+
+            // 1. Ambil post terjadwal / draf dari Kalender & Buat Post sesuai platform terpilih
+            const scheduledPosts = getFilteredContents()
+                .filter(c => c.platform === state.feedPlatform && c.content_status !== 'Published')
+                .sort((a, b) => String(b.scheduled_date).localeCompare(String(a.scheduled_date)));
+
+        // 2. Ambil post yang sudah tayang dari API
+            const livePosts = state.liveFeeds.filter(p => p.platform === state.feedPlatform);
+
+            if (state.feedPlatform === 'Threads') {
+                grid.className = "space-y-3";
+            } else {
+                grid.className = "grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4";
+            }
+
+            grid.innerHTML = '';
+
+            // Render Scheduled Posts (dari Kalender / Buat Post)
+            scheduledPosts.forEach(c => {
+                const tClean = cleanTimeStr(c.scheduled_time, '19:00');
+                const dClean = String(c.scheduled_date).split('T')[0];
+
+                if (state.feedPlatform === 'Threads') {
+                    grid.innerHTML += `
+                        <div onclick="editPostInComposer('${c.content_id}')" class="apple-card p-5 border-l-4 border-blue-600 cursor-pointer hover:bg-blue-50/20">
+                            <div class="flex justify-between items-center text-xs mb-2">
+                                <span class="font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">📅 Terjadwal: ${dClean} ${tClean}</span>
+                                <span class="text-gray-400 font-semibold">${c.brand_name}</span>
+                            </div>
+                            <h4 class="font-bold text-sm text-gray-900">${c.content_title}</h4>
+                            <p class="text-xs text-gray-600 mt-1 line-clamp-2">${c.caption || ''}</p>
+                        </div>
+                    `;
+                } else {
+                    const aspect = state.feedPlatform === 'Instagram' ? 'aspect-square' : 'aspect-[9/16]';
+                    grid.innerHTML += `
+                        <div onclick="editPostInComposer('${c.content_id}')" class="apple-card overflow-hidden relative ${aspect} bg-gray-900 text-white group cursor-pointer border-2 border-blue-500">
+                            ${c.thumbnail_url ? `<img src="${c.thumbnail_url}" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition">` : ''}
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent p-3 flex flex-col justify-between">
+                                <div class="flex justify-between items-start gap-1">
+                                    <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">📅 ${dClean} ${tClean}</span>
+                                    <button type="button" onclick="event.stopPropagation(); deletePostById('${c.content_id}')" class="bg-black/60 hover:bg-red-600 text-white w-6 h-6 rounded-full text-xs font-bold cursor-pointer">×</button>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-blue-300 font-bold uppercase">${c.content_status}</span>
+                                    <p class="font-bold text-xs leading-snug line-clamp-2 mt-0.5">${c.content_title}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            // Render Live Existing Feeds dari API Platform
+            livePosts.forEach(p => {
+                if (state.feedPlatform === 'Threads') {
+                    grid.innerHTML += `
+                        <div class="apple-card p-5 space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-full">✓ Live di Threads</span>
+                                <span class="text-gray-400">${String(p.published_at).split('T')[0]}</span>
+                            </div>
+                            <p class="text-sm text-gray-800">${p.caption}</p>
+                        </div>
+                    `;
+                } else {
+                    const aspect = state.feedPlatform === 'Instagram' ? 'aspect-square' : 'aspect-[9/16]';
+                    grid.innerHTML += `
+                        <a href="${p.permalink || '#'}" target="_blank" class="apple-card overflow-hidden relative ${aspect} bg-gray-800 text-white group block">
+                            ${p.thumbnail ? `<img src="${p.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition">` : ''}
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/30 p-3 flex flex-col justify-between">
+                                <span class="bg-black/60 backdrop-blur-sm text-green-400 text-[10px] font-bold px-2 py-0.5 rounded-full self-start">✓ Live</span>
+                                <div>
+                                    <p class="font-bold text-xs line-clamp-2">${p.title}</p>
+                                    <div class="flex items-center gap-3 text-[10px] text-gray-300 mt-1 font-semibold">
+                                        ${p.views > 0 ? `<span>▶ ${p.views.toLocaleString()}</span>` : ''}
+                                        <span>♥ ${p.likes.toLocaleString()}</span>
+                                        <span>💬 ${p.comments.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                }
+            });
+
+            if (scheduledPosts.length === 0 && livePosts.length === 0) {
+                grid.className = "apple-card p-12 text-center";
+                grid.innerHTML = `
+                    <i class="ph ph-squares-four text-4xl text-gray-300 mb-2"></i>
+                    <h4 class="font-bold text-base text-gray-900">Belum ada feed untuk ${state.feedPlatform}</h4>
+                    <p class="text-xs text-gray-500 mt-1">Buat jadwal post di Kalender/Buat Post atau klik "Tarik Feeds API" di pojok kanan atas.</p>
+                `;
+            }
+        }
+
+        // =========================================================================
+        // UNIFIED INBOX ("Balasan") — SINKRONISASI & BALAS KE API ASLI
+        // =========================================================================
+        async function syncInboxFromApis() {
+            const btn = document.getElementById('btn-sync-inbox');
+            btn.innerText = "Menarik Komentar...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/social-sync?mode=sync_inbox&brand=${encodeURIComponent(state.activeBrand)}`);
+                const json = await res.json();
+                if (json.success) {
+                    showToast(`Sinkronisasi selesai! ${json.fetchedCount} komentar diperiksa dari API.`);
+                    await bootstrapApp();
+                } else {
+                    showToast("Gagal sinkronisasi: " + (json.error || "Cek koneksi OAuth"), true);
+                }
+            } catch (e) {
+                showToast("Error API Inbox: " + e.message, true);
+            } finally {
+                btn.innerHTML = `<i class="ph ph-arrows-clockwise"></i> Sinkronkan Komentar API`;
+                btn.disabled = false;
+            }
+        }
+
         function setInboxFilter(status) {
             state.inboxFilter = status;
             document.getElementById('tab-inbox-unreplied').className = status === 'Unreplied'
@@ -784,7 +1080,7 @@
                 container.innerHTML = `
                     <div class="apple-card p-12 text-center">
                         <h4 class="font-bold text-base text-gray-900">Antrean kosong</h4>
-                        <p class="text-xs text-gray-500 mt-1">Belum ada balasan baru di kategori ini.</p>
+                        <p class="text-xs text-gray-500 mt-1">Klik "Sinkronkan Komentar API" untuk menarik komentar terbaru dari akun yang terhubung.</p>
                     </div>
                 `;
                 return;
@@ -794,14 +1090,14 @@
                 container.innerHTML += `
                     <div class="apple-card p-5 space-y-3">
                         <div class="flex justify-between items-center text-xs">
-                            <span class="font-bold text-gray-900">${m.sender_username} <span class="text-gray-400 font-normal">di ${m.platform} (${m.brand_name})</span></span>
+                            <span class="font-bold text-gray-900">${m.sender_username} <span class="text-blue-600 font-semibold">• ${m.platform}</span> <span class="text-gray-400 font-normal">(${m.brand_name})</span></span>
                             <span class="text-gray-400">${String(m.received_at).split('T')[0]}</span>
                         </div>
                         <p class="text-sm text-gray-800 bg-gray-50 p-3 rounded-xl">"${m.comment_text}"</p>
                         ${m.status === 'Unreplied' ? `
                             <div class="flex gap-2">
-                                <input type="text" id="reply-input-${m.msg_id}" class="apple-input text-xs" placeholder="Tulis balasan Anda...">
-                                <button type="button" onclick="sendInboxReply('${m.msg_id}')" class="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">Balas</button>
+                                <input type="text" id="reply-input-${m.msg_id}" class="apple-input text-xs" placeholder="Tulis balasan langsung ke ${m.platform}...">
+                                <button type="button" onclick="sendInboxReply('${m.msg_id}', '${m.platform}', '${m.brand_name}')" class="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">Balas</button>
                             </div>
                         ` : `
                             <p class="text-xs text-green-700 font-semibold">✓ Dibalas: "${m.reply_text}"</p>
@@ -811,15 +1107,158 @@
             });
         }
 
-        async function sendInboxReply(msgId) {
+        async function sendInboxReply(msgId, platform, brandName) {
             const input = document.getElementById(`reply-input-${msgId}`);
             if (!input || !input.value.trim()) return;
-            await apiPost('reply_inbox', { msgId, replyText: input.value.trim() });
-            showToast("Balasan terkirim!");
-            bootstrapApp();
+            const replyText = input.value.trim();
+
+            const res = await fetch('/api/social-sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    mode: 'send_reply',
+                    msgId,
+                    platform,
+                    brand: brandName,
+                    replyText
+                })
+            });
+            const json = await res.json();
+            if (json.success) {
+                showToast(json.apiSent ? `Balasan terkirim langsung ke ${platform}!` : "Balasan disimpan di antrean.");
+                bootstrapApp();
+            } else {
+                showToast("Gagal membalas: " + (json.error || "Error"), true);
+            }
         }
 
-        // --- KALENDER & QUEUE SLOTS ---
+        // =========================================================================
+        // ANALYTICS & RETENTION INSIGHTS (LIVE PLATFORM API)
+        // =========================================================================
+        async function fetchLiveAnalytics(showNotif = true) {
+            const btn = document.getElementById('btn-sync-analytics');
+            if (btn) { btn.innerText = "Menarik Data API..."; btn.disabled = true; }
+
+            try {
+                const res = await fetch(`/api/social-sync?mode=analytics&brand=${encodeURIComponent(state.activeBrand)}`);
+                const json = await res.json();
+                if (json.success) {
+                    state.liveAnalytics = json.summary;
+                    renderAnalyticsDashboard();
+                    if (showNotif) showToast("Data analitik & retensi berhasil diperbarui dari API!");
+                } else if (showNotif) {
+                    showToast("Gagal menarik analitik: " + (json.error || "Error"), true);
+                }
+            } catch (e) {
+                if (showNotif) showToast("Error API Analitik: " + e.message, true);
+            } finally {
+                if (btn) { btn.innerHTML = `<i class="ph ph-chart-line-up"></i> Tarik Data API Terbaru`; btn.disabled = false; }
+            }
+        }
+
+        function renderAnalyticsDashboard() {
+            const s = state.liveAnalytics || {
+                totalFollowers: 0, totalViews: 0, totalLikes: 0, totalComments: 0, totalShares: 0,
+                avgEngagementRate: "0.00", avgRetentionScore: 0,
+                byPlatform: {
+                    YouTube: { followers: 0, views: 0, engagement: 0, retention: 0, posts: 0, connected: false },
+                    Instagram: { followers: 0, views: 0, engagement: 0, retention: 0, posts: 0, connected: false },
+                    TikTok: { followers: 0, views: 0, engagement: 0, retention: 0, posts: 0, connected: false },
+                    Threads: { followers: 0, views: 0, engagement: 0, retention: 0, posts: 0, connected: false }
+                },
+                topPosts: [],
+                insights: ["Klik 'Tarik Data API Terbaru' untuk memuat metrik aktual dari akun yang sudah dihubungkan."]
+            };
+
+            const totalEng = (s.totalLikes || 0) + (s.totalComments || 0) + (s.totalShares || 0);
+            document.getElementById('an-followers').innerText = (s.totalFollowers || 0).toLocaleString();
+            document.getElementById('an-views').innerText = (s.totalViews || 0).toLocaleString();
+            document.getElementById('an-eng').innerText = totalEng.toLocaleString();
+            document.getElementById('an-er').innerText = `${s.avgEngagementRate}%`;
+            document.getElementById('an-retention').innerText = `${s.avgRetentionScore}%`;
+
+            // Platform Cards
+            const pContainer = document.getElementById('an-platform-cards');
+            if (pContainer) {
+                pContainer.innerHTML = '';
+                ['YouTube', 'Instagram', 'TikTok', 'Threads'].forEach(p => {
+                    const info = s.byPlatform[p] || {};
+                    pContainer.innerHTML += `
+                        <div class="apple-card p-5 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="font-extrabold text-sm text-gray-900">${p}</span>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${info.connected ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">
+                                    ${info.connected ? 'API Live' : 'Offline'}
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 pt-2 text-xs">
+                                <div><span class="text-gray-400 block text-[10px]">Followers</span><strong>${(info.followers || 0).toLocaleString()}</strong></div>
+                                <div><span class="text-gray-400 block text-[10px]">Views/Reach</span><strong>${(info.views || 0).toLocaleString()}</strong></div>
+                                <div><span class="text-gray-400 block text-[10px]">Interaksi</span><strong>${(info.engagement || 0).toLocaleString()}</strong></div>
+                                <div><span class="text-gray-400 block text-[10px]">Retensi</span><strong class="text-indigo-600">${info.retention ? info.retention + '%' : '-'}</strong></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Insights List
+            const insContainer = document.getElementById('an-insights-list');
+            if (insContainer) {
+                insContainer.innerHTML = (s.insights || []).map(txt => `
+                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 leading-relaxed">${txt}</div>
+                `).join('');
+            }
+
+            // Top Posts Table
+            const tbody = document.getElementById('an-top-posts-body');
+            if (tbody) {
+                tbody.innerHTML = (s.topPosts || []).length === 0
+                    ? `<tr><td colspan="6" class="p-6 text-center text-gray-400">Belum ada data performa konten dari API.</td></tr>`
+                    : s.topPosts.map(row => `
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-4 font-bold">${row.platform}</td>
+                            <td class="p-4 font-medium text-gray-900 max-w-xs truncate">${row.title}</td>
+                            <td class="p-4 font-bold">${row.views.toLocaleString()}</td>
+                            <td class="p-4">${row.engagement.toLocaleString()}</td>
+                            <td class="p-4 text-green-600 font-bold">${row.er}</td>
+                            <td class="p-4 text-indigo-600 font-bold">${row.retention}</td>
+                        </tr>
+                    `).join('');
+            }
+
+            // Render Chart.js
+            const ctx = document.getElementById('anPlatformChart');
+            if (ctx) {
+                if (anChartInstance) anChartInstance.destroy();
+                const labels = ['YouTube', 'Instagram', 'TikTok', 'Threads'];
+                anChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels,
+                        datasets: [
+                            {
+                                label: 'Views / Reach',
+                                data: labels.map(l => s.byPlatform[l]?.views || 0),
+                                backgroundColor: '#007AFF',
+                                borderRadius: 6
+                            },
+                            {
+                                label: 'Interaksi',
+                                data: labels.map(l => s.byPlatform[l]?.engagement || 0),
+                                backgroundColor: '#10B981',
+                                borderRadius: 6
+                            }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        }
+
+        // =========================================================================
+        // KALENDER, SWIPE, COMPOSER, ASSETS, SLOT & BRAND DNA
+        // =========================================================================
         function changeCalMonth(delta) {
             state.calMonth += delta;
             if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
@@ -874,7 +1313,6 @@
             }
         }
 
-        // --- SWIPE BATCH GENERATOR ---
         function togglePillar(el, pillarName) {
             el.classList.toggle('pillar-selected');
             if (state.selectedPillars.includes(pillarName)) {
@@ -908,7 +1346,6 @@
             }
         }
 
-        // --- COMPOSER & LIVE PREVIEW ---
         function renderComposerQueue() {
             const container = document.getElementById('composer-queue-list');
             if (!container) return;
@@ -950,6 +1387,7 @@
             if (brandName) document.getElementById('comp-brand').value = brandName;
             updateLivePreview();
         }
+
         function editPostInComposer(contentId) {
             const c = state.contents.find(x => x.content_id === contentId);
             if (!c) return;
@@ -974,9 +1412,7 @@
             const res = await apiPost('delete_post', { contentId });
             if (res.success) {
                 showToast("Postingan berhasil dihapus!");
-                if (document.getElementById('comp-id').value === contentId) {
-                    openNewComposerPost();
-                }
+                if (document.getElementById('comp-id').value === contentId) openNewComposerPost();
                 bootstrapApp();
             } else {
                 showToast("Gagal menghapus post: " + (res.error || "Error"), true);
@@ -1070,7 +1506,6 @@
             }
         }
 
-        // --- ASSETS & GOOGLE DRIVE ---
         function populateComposerAssetDropdown() {
             const sel = document.getElementById('comp-asset-select');
             if (!sel) return;
@@ -1129,7 +1564,6 @@
             });
         }
 
-        // --- SLOT MATRIX ---
         function renderSlotMatrix() {
             const tbody = document.getElementById('slot-matrix-body');
             if (!tbody) return;
@@ -1161,7 +1595,6 @@
             bootstrapApp();
         }
 
-        // --- BRAND DNA & LEARNING ---
         function renderBrandContextCards() {
             const container = document.getElementById('brand-context-cards');
             if (!container) return;
@@ -1323,14 +1756,6 @@
             } else {
                 showToast(res.error || "Belum ada data post untuk dipelajari.", true);
             }
-        }
-
-        function updateAnalyticsKPI() {
-            const list = getFilteredContents();
-            document.getElementById('an-total').innerText = list.length;
-            document.getElementById('an-ready').innerText = list.filter(c => c.content_status === 'Ready').length;
-            document.getElementById('an-pub').innerText = list.filter(c => c.content_status === 'Published').length;
-            document.getElementById('an-conn').innerText = state.connections.length;
         }
     </script>
 </body>
