@@ -78,7 +78,7 @@
             <a onclick="navigate('assets')" id="nav-assets" class="nav-item"><i class="ph ph-images text-lg"></i> Aset & Drive</a>
             <a onclick="navigate('settings')" id="nav-settings" class="nav-item"><i class="ph ph-gear text-lg"></i> Pengaturan & Slot</a>
 
-            <!-- QUICK OAUTH PANEL ("Posting ke") DENGAN NAMA AKUN & TOMBOL CANCEL HUBUNGKAN -->
+            <!-- QUICK OAUTH PANEL ("Posting ke") -->
             <div class="mt-5 pt-4 border-t border-gray-100 px-1">
                 <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Posting ke (OAuth)</p>
                 <div class="space-y-2.5" id="sidebar-oauth-list"></div>
@@ -148,7 +148,7 @@
                 </div>
             </div>
 
-            <!-- 2. VIEW: FEEDS & GRID PREVIEW (SYNCED WITH CALENDAR + LIVE PLATFORM API) -->
+            <!-- 2. VIEW: FEEDS & GRID PREVIEW -->
             <div id="view-feeds" class="view-section hidden max-w-5xl mx-auto space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
@@ -168,7 +168,6 @@
                     </div>
                 </div>
 
-                <!-- Profile Header Mockup -->
                 <div class="apple-card p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
                         <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-2xl font-extrabold shadow-md" id="feed-profile-avatar">B</div>
@@ -185,10 +184,7 @@
                     </button>
                 </div>
 
-                <!-- Grid / Feed Container -->
-                <div id="feeds-grid-container" class="grid grid-cols-3 gap-2 md:gap-4">
-                    <!-- Rendered via JS -->
-                </div>
+                <div id="feeds-grid-container" class="grid grid-cols-3 gap-2 md:gap-4"></div>
             </div>
 
             <!-- 3. VIEW: SWIPE (BATCH GENERATOR) -->
@@ -240,7 +236,6 @@
             <!-- 4. VIEW: BUAT POST (SPLIT-SCREEN COMPOSER + LIVE PREVIEW) -->
             <div id="view-composer" class="view-section hidden max-w-7xl mx-auto">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <!-- Kiri: Antrean -->
                     <div class="lg:col-span-3 apple-card p-4 space-y-3 max-h-[82vh] overflow-y-auto">
                         <div class="flex justify-between items-center border-b border-gray-100 pb-2.5">
                             <h3 class="font-bold text-sm text-gray-900">Antrean & Ide</h3>
@@ -249,7 +244,6 @@
                         <div id="composer-queue-list" class="space-y-2"></div>
                     </div>
 
-                    <!-- Tengah: Editor -->
                     <div class="lg:col-span-5 apple-card p-6 space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="font-extrabold text-lg text-gray-900" id="comp-mode-title">Buat post</h3>
@@ -260,7 +254,6 @@
                         </div>
                         <input type="hidden" id="comp-id">
 
-                        <!-- AI Co-Pilot Bar -->
                         <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-3.5 space-y-2">
                             <div class="flex items-center gap-1.5 text-xs font-bold text-indigo-700"><i class="ph-fill ph-sparkle"></i> Bikin dari ide — Ceritain post yang kamu mau...</div>
                             <div class="flex gap-2">
@@ -328,7 +321,6 @@
                         </div>
                     </div>
 
-                    <!-- Kanan: Live Mobile Mockup -->
                     <div class="lg:col-span-4 flex flex-col items-center">
                         <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                             <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Live Mobile Preview
@@ -365,7 +357,7 @@
                 </div>
             </div>
 
-            <!-- 5. VIEW: BALASAN (UNIFIED COMMENT INBOX SYNCED WITH ALL APIS) -->
+            <!-- 5. VIEW: BALASAN (UNIFIED COMMENT INBOX) -->
             <div id="view-inbox" class="view-section hidden max-w-4xl mx-auto space-y-5">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
@@ -395,7 +387,6 @@
                     </button>
                 </div>
 
-                <!-- KPI Cards -->
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div class="apple-card p-5"><p class="text-[11px] font-bold text-gray-400 uppercase">Total Followers</p><h3 id="an-followers" class="text-2xl md:text-3xl font-extrabold mt-2">0</h3></div>
                     <div class="apple-card p-5"><p class="text-[11px] font-bold text-gray-400 uppercase">Total Views / Reach</p><h3 id="an-views" class="text-2xl md:text-3xl font-extrabold text-blue-600 mt-2">0</h3></div>
@@ -404,10 +395,8 @@
                     <div class="apple-card p-5 border border-indigo-100 bg-indigo-50/30"><p class="text-[11px] font-bold text-indigo-600 uppercase">Hook Retention</p><h3 id="an-retention" class="text-2xl md:text-3xl font-extrabold text-indigo-700 mt-2">0%</h3></div>
                 </div>
 
-                <!-- Platform Breakdown Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="an-platform-cards"></div>
 
-                <!-- Charts & AI Insights -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     <div class="lg:col-span-7 apple-card p-6">
                         <h4 class="font-bold text-base text-gray-900 mb-1">Perbandingan Views & Interaksi Antar Platform</h4>
@@ -420,7 +409,6 @@
                     </div>
                 </div>
 
-                <!-- Top Performing Content Table -->
                 <div class="apple-card overflow-hidden">
                     <div class="p-5 border-b border-gray-100">
                         <h4 class="font-bold text-base text-gray-900">Top Performing Content (Live API)</h4>
@@ -479,7 +467,6 @@
             <div id="view-settings" class="view-section hidden max-w-5xl mx-auto space-y-6">
                 <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Akun & brand</h2>
 
-                <!-- Slot Posting Matrix -->
                 <div class="apple-card p-6 space-y-5">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 gap-3">
                         <div>
@@ -500,7 +487,6 @@
                     </div>
                 </div>
 
-                <!-- OAuth Connection Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="settings-oauth-cards"></div>
             </div>
 
@@ -529,7 +515,6 @@
             <div><label class="apple-label">Formula Hook Andalan (1 baris per template, gunakan {topic} / {num})</label><textarea id="bc-hooks" rows="3" class="apple-input font-mono text-xs" placeholder="Part {num}: Rahasia di balik {topic}&#10;Kenapa {topic} jarang diketahui orang?"></textarea></div>
             <div><label class="apple-label">Core Hook / Deskripsi Produk Utama</label><textarea id="bc-hook" rows="2" class="apple-input" placeholder="Jelaskan inti cerita atau produk utama brand ini..."></textarea></div>
 
-            <!-- PILLAR BATCH LEARNING -->
             <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3">
                 <div>
                     <h4 class="text-xs font-extrabold text-gray-900 uppercase tracking-wider flex items-center gap-1.5"><i class="ph-fill ph-sparkle text-indigo-600"></i> Pillar Batch Learning (Acuan Menu Swipe)</h4>
@@ -572,10 +557,19 @@
         };
         let anChartInstance = null;
 
+        async function safeJsonResponse(res) {
+            const txt = await res.text();
+            try {
+                return JSON.parse(txt);
+            } catch (e) {
+                return { success: false, error: txt.slice(0, 140) };
+            }
+        }
+
         async function apiGet(endpoint) {
             try {
                 const res = await fetch(`/api/gas-proxy?api=${encodeURIComponent(endpoint)}`);
-                return await res.json();
+                return await safeJsonResponse(res);
             } catch (err) {
                 return { success: false, error: err.message };
             }
@@ -588,7 +582,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action, ...bodyObj })
                 });
-                return await res.json();
+                return await safeJsonResponse(res);
             } catch (err) {
                 return { success: false, error: err.message };
             }
@@ -674,7 +668,6 @@
             populateComposerAssetDropdown();
             refreshAllViews();
 
-            // Otomatis tarik feeds & analitik live jika ada akun terhubung
             if (state.connections.length > 0) {
                 fetchLivePlatformFeeds(false);
                 fetchLiveAnalytics(false);
@@ -767,7 +760,7 @@
         }
 
         // =========================================================================
-        // OAUTH CONNECTIONS ("Posting ke") — TAMPILKAN AKUN SAAT ALL BRANDS + TOMBOL CANCEL
+        // OAUTH CONNECTIONS ("Posting ke")
         // =========================================================================
         function connectOAuthPlatform(platform) {
             const targetBrand = state.activeBrand === 'ALL'
@@ -863,7 +856,7 @@
         }
 
         // =========================================================================
-        // FEEDS & GRID PREVIEW (SYNCED WITH CALENDAR + EXISTING LIVE API POSTS)
+        // FEEDS & GRID PREVIEW
         // =========================================================================
         function setFeedPlatform(plat) {
             state.feedPlatform = plat;
@@ -878,36 +871,26 @@
             fetchLivePlatformFeeds(false);
         }
 
-         async function safeJsonResponse(res) {
-            const txt = await res.text();
-            try {
-                return JSON.parse(txt);
-            } catch (e) {
-                return { success: false, error: txt.slice(0, 120) };
-            }
-        }
-
         async function fetchLivePlatformFeeds(showNotif = true) {
             const btn = document.getElementById('btn-sync-feeds');
             if (btn) { btn.innerText = "Menarik Feeds..."; btn.disabled = true; }
 
             try {
-                const res = await fetch(/api/social-sync?mode=feeds&brand=${encodeURIComponent(state.activeBrand)}&platform=${encodeURIComponent(state.feedPlatform)});
+                const res = await fetch(`/api/social-sync?mode=feeds&brand=${encodeURIComponent(state.activeBrand)}&platform=${encodeURIComponent(state.feedPlatform)}`);
                 const json = await safeJsonResponse(res);
                 if (json.success) {
                     state.liveFeeds = json.posts || [];
                     renderFeedsView();
-                    if (showNotif) showToast(Berhasil menarik ${state.liveFeeds.length} post dari ${state.feedPlatform}!);
+                    if (showNotif) showToast(`Berhasil menarik ${state.liveFeeds.length} post dari ${state.feedPlatform}!`);
                 } else if (showNotif) {
                     showToast("Gagal menarik feeds: " + (json.error || "Cek koneksi OAuth"), true);
                 }
             } catch (e) {
                 if (showNotif) showToast("Error koneksi API: " + e.message, true);
             } finally {
-                if (btn) { btn.innerHTML = <i class="ph ph-cloud-arrow-down"></i> Tarik Feeds API; btn.disabled = false; }
+                if (btn) { btn.innerHTML = `<i class="ph ph-cloud-arrow-down"></i> Tarik Feeds API`; btn.disabled = false; }
             }
         }
-            
         function openNewComposerPostForFeed() {
             openNewComposerPost();
             document.getElementById('comp-platform').value = state.feedPlatform;
@@ -934,12 +917,10 @@
                 badge.className = "text-[10px] font-bold bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full";
             }
 
-            // 1. Ambil post terjadwal / draf dari Kalender & Buat Post sesuai platform terpilih
             const scheduledPosts = getFilteredContents()
                 .filter(c => c.platform === state.feedPlatform && c.content_status !== 'Published')
                 .sort((a, b) => String(b.scheduled_date).localeCompare(String(a.scheduled_date)));
 
-        // 2. Ambil post yang sudah tayang dari API
             const livePosts = state.liveFeeds.filter(p => p.platform === state.feedPlatform);
 
             if (state.feedPlatform === 'Threads') {
@@ -950,7 +931,6 @@
 
             grid.innerHTML = '';
 
-            // Render Scheduled Posts (dari Kalender / Buat Post)
             scheduledPosts.forEach(c => {
                 const tClean = cleanTimeStr(c.scheduled_time, '19:00');
                 const dClean = String(c.scheduled_date).split('T')[0];
@@ -986,7 +966,6 @@
                 }
             });
 
-            // Render Live Existing Feeds dari API Platform
             livePosts.forEach(p => {
                 if (state.feedPlatform === 'Threads') {
                     grid.innerHTML += `
@@ -1030,7 +1009,7 @@
         }
 
         // =========================================================================
-        // UNIFIED INBOX ("Balasan") — SINKRONISASI & BALAS KE API ASLI
+        // UNIFIED INBOX ("Balasan")
         // =========================================================================
         async function syncInboxFromApis() {
             const btn = document.getElementById('btn-sync-inbox');
@@ -1038,10 +1017,10 @@
             btn.disabled = true;
 
             try {
-                const res = await fetch(/api/social-sync?mode=sync_inbox&brand=${encodeURIComponent(state.activeBrand)});
+                const res = await fetch(`/api/social-sync?mode=sync_inbox&brand=${encodeURIComponent(state.activeBrand)}`);
                 const json = await safeJsonResponse(res);
                 if (json.success) {
-                    showToast(Sinkronisasi selesai! ${json.fetchedCount} komentar diperiksa dari API.);
+                    showToast(`Sinkronisasi selesai! ${json.fetchedCount} komentar diperiksa dari API.`);
                     await bootstrapApp();
                 } else {
                     showToast("Gagal sinkronisasi: " + (json.error || "Cek koneksi OAuth"), true);
@@ -1049,7 +1028,7 @@
             } catch (e) {
                 showToast("Error API Inbox: " + e.message, true);
             } finally {
-                btn.innerHTML = <i class="ph ph-arrows-clockwise"></i> Sinkronkan Komentar API;
+                btn.innerHTML = `<i class="ph ph-arrows-clockwise"></i> Sinkronkan Komentar API`;
                 btn.disabled = false;
             }
         }
@@ -1132,7 +1111,7 @@
                     replyText
                 })
             });
-            const json = await res.json();
+            const json = await safeJsonResponse(res);
             if (json.success) {
                 showToast(json.apiSent ? `Balasan terkirim langsung ke ${platform}!` : "Balasan disimpan di antrean.");
                 bootstrapApp();
@@ -1142,14 +1121,14 @@
         }
 
         // =========================================================================
-        // ANALYTICS & RETENTION INSIGHTS (LIVE PLATFORM API)
+        // ANALYTICS & RETENTION INSIGHTS
         // =========================================================================
         async function fetchLiveAnalytics(showNotif = true) {
             const btn = document.getElementById('btn-sync-analytics');
             if (btn) { btn.innerText = "Menarik Data API..."; btn.disabled = true; }
 
             try {
-                const res = await fetch(/api/social-sync?mode=analytics&brand=${encodeURIComponent(state.activeBrand)});
+                const res = await fetch(`/api/social-sync?mode=analytics&brand=${encodeURIComponent(state.activeBrand)}`);
                 const json = await safeJsonResponse(res);
                 if (json.success) {
                     state.liveAnalytics = json.summary;
@@ -1161,10 +1140,10 @@
             } catch (e) {
                 if (showNotif) showToast("Error API Analitik: " + e.message, true);
             } finally {
-                if (btn) { btn.innerHTML = <i class="ph ph-chart-line-up"></i> Tarik Data API Terbaru; btn.disabled = false; }
+                if (btn) { btn.innerHTML = `<i class="ph ph-chart-line-up"></i> Tarik Data API Terbaru`; btn.disabled = false; }
             }
         }
-            
+
         function renderAnalyticsDashboard() {
             const s = state.liveAnalytics || {
                 totalFollowers: 0, totalViews: 0, totalLikes: 0, totalComments: 0, totalShares: 0,
@@ -1186,7 +1165,6 @@
             document.getElementById('an-er').innerText = `${s.avgEngagementRate}%`;
             document.getElementById('an-retention').innerText = `${s.avgRetentionScore}%`;
 
-            // Platform Cards
             const pContainer = document.getElementById('an-platform-cards');
             if (pContainer) {
                 pContainer.innerHTML = '';
@@ -1211,7 +1189,6 @@
                 });
             }
 
-            // Insights List
             const insContainer = document.getElementById('an-insights-list');
             if (insContainer) {
                 insContainer.innerHTML = (s.insights || []).map(txt => `
@@ -1219,7 +1196,6 @@
                 `).join('');
             }
 
-            // Top Posts Table
             const tbody = document.getElementById('an-top-posts-body');
             if (tbody) {
                 tbody.innerHTML = (s.topPosts || []).length === 0
@@ -1236,7 +1212,6 @@
                     `).join('');
             }
 
-            // Render Chart.js
             const ctx = document.getElementById('anPlatformChart');
             if (ctx) {
                 if (anChartInstance) anChartInstance.destroy();
