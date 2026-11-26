@@ -45,7 +45,7 @@ async function ensureFreshToken(conn, GAS_URL, API_SECRET) {
             action: "save_oauth_connection",
             payload: { ...conn, access_token: j.access_token }
           })
-        }, 3000).catch(() => {});
+        }, 3000).catch((saveErr) => console.error("Failed to save refreshed token:", saveErr.message));
       }
     }
 
@@ -72,10 +72,65 @@ async function ensureFreshToken(conn, GAS_URL, API_SECRET) {
             action: "save_oauth_connection",
             payload: { ...conn, access_token: j.access_token, refresh_token: conn.refresh_token }
           })
-        }, 3000).catch(() => {});
+        }, 3000).catch((saveErr) => console.error("Failed to save refreshed token:", saveErr.message));
       }
     }
-  } catch (e) {}
+// Threads: token long-lived diperbarui dengan access_token yang masih
+    // berlaku (bukan refresh_token). Hanya dicoba bila token sudah dekat
+    // kedaluwarsa — field expires_at berasal dari data koneksi GAS bila ada.
+    if (conn.platform === "Threads" && conn.access_token) {
+      const expiresAt = conn.expires_at ? new Date(conn.expires_at).getTime() : 0;
+      const needsRefresh = !expiresAt || expiresAt - Date.now() < 7 * 24 * 3600 * 1000;
+      if (needsRefresh) {
+        const r = await fetchWithTimeout(
+          `https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token&access_token=${conn.access_token}`,
+          {}, 3500
+        );
+        const j = await r.json();
+        if (j.access_token) {
+          conn.access_token = j.access_token;
+          fetchWithTimeout(GAS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              secret: API_SECRET,
+              action: "save_oauth_connection",
+              payload: { ...conn, access_token: j.access_token }
+            })
+          }, 3000).catch((saveErr) => console.error("Failed to save refreshed Threads token:", saveErr.message));
+        } else if (j.error) {
+          console.error("Threads token refresh failed:", j.error.message || "unknown error");
+        }
+      }
+    }
+
+    // Instagram: alur OAuth saat ini tidak mengembalikan refresh_token
+    // (token long-lived Meta). Cabang ini hanya berjalan bila suatu saat
+    // GAS menyimpan refresh_token — dan tidak mengubah perilaku bila tidak ada.
+    if (conn.platform === "Instagram" && conn.refresh_token && process.env.META_APP_ID && process.env.META_APP_SECRET) {
+      const r = await fetchWithTimeout(
+        `https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.META_APP_ID}&client_secret=${process.env.META_APP_SECRET}&fb_exchange_token=${conn.refresh_token}`,
+        {}, 3500
+      );
+      const j = await r.json();
+      if (j.access_token) {
+        conn.access_token = j.access_token;
+        fetchWithTimeout(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            secret: API_SECRET,
+            action: "save_oauth_connection",
+            payload: { ...conn, access_token: j.access_token }
+          })
+        }, 3000).catch((saveErr) => console.error("Failed to save refreshed Instagram token:", saveErr.message));
+      } else if (j.error) {
+        console.error("Instagram token refresh failed:", j.error.message || "unknown error");
+      }
+    }
+  } catch (e) {
+    console.error(`Token refresh failed for ${conn.platform} (${conn.username}):`, e.message);
+  }
 
   return conn.access_token;
 }
@@ -95,7 +150,7 @@ export default async function handler(req, res) {
     let bodyObj = {};
     if (req.method === "POST") {
       if (typeof req.body === "string") {
-        try { bodyObj = JSON.parse(req.body); } catch (e) { bodyObj = {}; }
+        try { bodyObj = JSON.parse(req.body); } catch (e) { console.error("social-sync: invalid JSON body:", e.message); bodyObj = {}; }
       } else if (req.body && typeof req.body === "object") {
         bodyObj = req.body;
       }
@@ -295,11 +350,13 @@ export default async function handler(req, res) {
         totalShares: 0,
         avgEngagementRate: "0.00",
         avgRetentionScore: 0,
+        retentionIsEstimate: true,
+        avgRetentionScoreEstimated: true,
         byPlatform: {
-          YouTube: { followers: 0, views: 0, engagement: 0, retention: 0, posts: 0, connected: false },
-          Instagram: { followers: 0, views: 0, engagement: 0, retention: 0, posts: 0, connected: false },
-          TikTok: { followers: 0, views: 0, engagement: 0, retention: 0, posts: 0, connected: false },
-          Threads: { followers: 0, views: 0, engagement: 0, retention: 0, posts: 0, connected: false }
+          YouTube: { followers: 0, views: 0, engagement: 0, retention: 0, retentionEstimated: true, posts: 0, connected: false },
+          Instagram: { followers: 0, views: 0, engagement: 0, retention: 0, retentionEstimated: true, posts: 0, connected: false },
+          TikTok: { followers: 0, views: 0, engagement: 0, retention: 0, retentionEstimated: true, posts: 0, connected: false },
+          Threads: { followers: 0, views: 0, engagement: 0, retention: 0, retentionEstimated: true, posts: 0, connected: false }
         },
         topPosts: [],
         insights: []
@@ -359,6 +416,7 @@ export default async function handler(req, res) {
                 const comments = parseInt(v.statistics?.commentCount || 0);
                 const eng = likes + comments;
                 const er = views > 0 ? ((eng / views) * 100) : 0;
+                // ESTIMASI dari engagement rate — bukan data retensi asli platform.
                 const estRetention = views > 0 ? Math.min(94, Math.round(48 + er * 3.8)) : 0;
 
                 summary.totalViews += views;
@@ -376,7 +434,8 @@ export default async function handler(req, res) {
                   views,
                   engagement: eng,
                   er: er.toFixed(2) + "%",
-                  retention: estRetention + "%"
+                  retention: estRetention + "%",
+                  retentionEstimated: true
                 });
               });
             } else if (chTotalViews > 0) {
@@ -426,6 +485,7 @@ export default async function handler(req, res) {
                   const insJson = await insRes.json();
                   return parseInt(insJson.data?.[0]?.values?.[0]?.value || 0);
                 } catch (e) {
+                  console.error(`Instagram reach fetch failed for media ${m.id}:`, e.message);
                   return 0;
                 }
               })
@@ -438,6 +498,7 @@ export default async function handler(req, res) {
               const eng = likes + comments;
               const denom = reach > 0 ? reach : (foll > 0 ? foll : 100);
               const er = (eng / denom) * 100;
+              // ESTIMASI dari engagement rate — bukan data retensi asli platform.
               const estRetention = reach > 0 ? Math.min(92, Math.round(45 + er * 4)) : 0;
 
               summary.totalViews += reach;
@@ -455,7 +516,8 @@ export default async function handler(req, res) {
                 views: reach,
                 engagement: eng,
                 er: er.toFixed(2) + "%",
-                retention: estRetention > 0 ? estRetention + "%" : "N/A"
+                retention: estRetention > 0 ? estRetention + "%" : "N/A",
+                retentionEstimated: true
               });
             });
           }
@@ -495,6 +557,7 @@ export default async function handler(req, res) {
               const shares = parseInt(v.share_count || 0);
               const eng = likes + comments + shares;
               const er = views > 0 ? ((eng / views) * 100) : 0;
+              // ESTIMASI dari engagement rate — bukan data retensi asli platform.
               const estRetention = views > 0 ? Math.min(95, Math.round(50 + er * 3.5)) : 0;
 
               summary.totalViews += views;
@@ -513,7 +576,8 @@ export default async function handler(req, res) {
                 views,
                 engagement: eng,
                 er: er.toFixed(2) + "%",
-                retention: estRetention + "%"
+                retention: estRetention + "%",
+                retentionEstimated: true
               });
             });
           }
@@ -565,7 +629,7 @@ export default async function handler(req, res) {
         summary.insights.push(`Konten performa tertinggi: "${summary.topPosts[0].title}" di ${summary.topPosts[0].platform} (${summary.topPosts[0].views.toLocaleString()} views, ER ${summary.topPosts[0].er}).`);
       }
       if (summary.avgRetentionScore > 0) {
-        summary.insights.push(`Rata-rata Hook & Watch Retention lintas platform: ${summary.avgRetentionScore}% — ${summary.avgRetentionScore >= 65 ? "Sangat kuat, pertahankan pola 3 detik pertama!" : "Perkuat visual hook di 3 detik awal."}`);
+        summary.insights.push(`Rata-rata Hook & Watch Retention (ESTIMASI, bukan data retensi asli): ${summary.avgRetentionScore}% — ${summary.avgRetentionScore >= 65 ? "Sangat kuat, pertahankan pola 3 detik pertama!" : "Perkuat visual hook di 3 detik awal."}`);
       }
       if (allConns.length === 0) {
         summary.insights.push("Belum ada akun OAuth berstatus Connected untuk brand ini. Klik 'Hubungkan' di panel kiri.");
