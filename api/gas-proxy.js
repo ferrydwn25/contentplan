@@ -1,8 +1,57 @@
 /**
  * VERCEL SERVERLESS PROXY (/api/gas-proxy)
- * Menjembatani frontend Vercel dengan Google Apps Script secara aman
- * menggunakan Environment Variables (GAS_WEB_APP_URL & GAS_API_SECRET).
+ * Menjembatani frontend Vercel dengan Google Apps Script.
+ *
+ * KEAMANAN (perubahan Fase 1):
+ * - GET hanya boleh untuk endpoint "bootstrap" — SATU-SATUNYA endpoint baca
+ *   yang dipakai frontend. Endpoint server-side seperti "oauth_tokens" dan
+ *   "due_posts" TIDAK boleh lewat proxy ini, karena isinya token/konten
+ *   terjadwal; keduanya hanya dipanggil langsung server-ke-server oleh
+ *   api/social-sync.js dan api/cron-publish.js dengan secret mereka sendiri.
+ * - POST hanya boleh untuk action yang benar-benar dipakai frontend
+ *   (lihat POST_ACTION_ALLOWLIST). Action server-side seperti
+ *   "save_oauth_connection", "sync_inbox_batch", "reply_inbox", dan
+ *   "mark_published_by_cron" DITOLAK di sini.
+ * - Field "secret" dari body klien selalu dibuang; yang dipakai hanya
+ *   GAS_API_SECRET dari Environment Variables server.
+ * - Respons GAS yang bukan JSON tidak lagi membuat server crash;
+ *   dikembalikan sebagai 502 dengan pesan yang jelas.
  */
+
+const GET_ENDPOINT_ALLOWLIST = ["bootstrap"];
+
+const POST_ACTION_ALLOWLIST = [
+  "disconnect_oauth",
+  "generate_batch",
+  "delete_post",
+  "ai_caption",
+  "save_composer_post",
+  "upload_asset",
+  "toggle_slot",
+  "delete_slot",
+  "add_slot",
+  "save_brand_context",
+  "delete_brand_context",
+  "learn_brand_style"
+];
+
+async function forwardToGas(GAS_URL, API_SECRET, { method, url, body }) {
+  const gasRes = await fetch(url, {
+    method,
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+    redirect: "follow"
+  });
+  const text = await gasRes.text();
+  try {
+    return { status: gasRes.ok ? 200 : 502, data: JSON.parse(text) };
+  } catch (e) {
+    return {
+      status: 502,
+      data: { success: false, error: "GAS mengembalikan respons bukan JSON. Periksa deployment Apps Script." }
+    };
+  }
+}
 
 export default async function handler(req, res) {
   const GAS_URL = process.env.GAS_WEB_APP_URL;
@@ -18,29 +67,28 @@ export default async function handler(req, res) {
   try {
     if (req.method === "GET") {
       const endpoint = req.query.api || "bootstrap";
+      if (!GET_ENDPOINT_ALLOWLIST.includes(endpoint)) {
+        return res.status(403).json({ success: false, error: `Endpoint "${endpoint}" tidak diizinkan lewat proxy ini.` });
+      }
       const targetUrl = `${GAS_URL}?api=${encodeURIComponent(endpoint)}&secret=${encodeURIComponent(API_SECRET)}`;
-      const gasRes = await fetch(targetUrl, { redirect: "follow" });
-      const data = await gasRes.json();
-      return res.status(200).json(data);
+      const { status, data } = await forwardToGas(GAS_URL, API_SECRET, { method: "GET", url: targetUrl });
+      return res.status(status).json(data);
     }
 
     if (req.method === "POST") {
-      const payload = {
-        ...req.body,
-        secret: API_SECRET
-      };
-      const gasRes = await fetch(GAS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        redirect: "follow"
-      });
-      const data = await gasRes.json();
-      return res.status(200).json(data);
+      const body = req.body && typeof req.body === "object" ? req.body : {};
+      const { secret: _clientSecret, action, ...rest } = body;
+      if (typeof action !== "string" || !POST_ACTION_ALLOWLIST.includes(action)) {
+        return res.status(403).json({ success: false, error: `Action "${String(action)}" tidak diizinkan lewat proxy ini.` });
+      }
+      const payload = { ...rest, action, secret: API_SECRET };
+      const { status, data } = await forwardToGas(GAS_URL, API_SECRET, { method: "POST", url: GAS_URL, body: payload });
+      return res.status(status).json(data);
     }
 
     return res.status(405).json({ success: false, error: "Method Not Allowed" });
   } catch (err) {
+    console.error("gas-proxy error:", err.message);
     return res.status(500).json({ success: false, error: err.message });
   }
 }
