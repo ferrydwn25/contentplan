@@ -1,7 +1,8 @@
 // ContentPlan — js/core.js
-// Dipecah dari public/index.html baris 541-751, dipindah VERBATIM tanpa perubahan
-// nama fungsi, id elemen, urutan, atau endpoint. Script klasik (bukan ES module)
+// Dipecah dari public/index.html baris 541-751. Script klasik (bukan ES module)
 // supaya fungsi global tetap bisa dipanggil inline onclick di index.html.
+// LOGIN (2026-11-27): apiGet/apiPost mengirim session_token; bootstrap
+// hanya jalan setelah login (gate di DOMContentLoaded, lihat auth.js).
         const ALL_VIEWS = ['calendar', 'feeds', 'swipe', 'composer', 'inbox', 'analytics', 'assets', 'brandcontext', 'settings'];
         let state = {
             activeBrand: 'ALL',
@@ -32,7 +33,12 @@
 
         async function apiGet(endpoint) {
             try {
-                const res = await fetch(`/api/gas-proxy?api=${encodeURIComponent(endpoint)}`);
+                /* LOGIN: kirim session_token di setiap panggilan. */
+                const token = getSessionToken();
+                const url = token
+                    ? `/api/gas-proxy?api=${encodeURIComponent(endpoint)}&session_token=${encodeURIComponent(token)}`
+                    : `/api/gas-proxy?api=${encodeURIComponent(endpoint)}`;
+                const res = await fetch(url);
                 return await safeJsonResponse(res);
             } catch (err) {
                 return { success: false, error: err.message };
@@ -44,7 +50,8 @@
                 const res = await fetch('/api/gas-proxy', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action, ...bodyObj })
+                    /* LOGIN: kirim session_token di setiap panggilan. */
+                    body: JSON.stringify({ action, ...bodyObj, session_token: getSessionToken() })
                 });
                 return await safeJsonResponse(res);
             } catch (err) {
@@ -79,12 +86,7 @@
             return fallback;
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            renderSidebarOAuth();
-            renderSettingsOAuthCards();
-            renderCalendar();
-            renderFeedsView();
-
+        document.addEventListener("DOMContentLoaded", async () => {
             const params = new URLSearchParams(window.location.search);
             if (params.get('code') && params.get('state')) {
                 window.location.href = `/api/oauth?code=${encodeURIComponent(params.get('code'))}&state=${encodeURIComponent(params.get('state'))}`;
@@ -102,7 +104,12 @@
                 banner.classList.remove('hidden');
                 window.history.replaceState({}, document.title, "/");
             }
-            bootstrapApp();
+            /* LOGIN (2026-11-27): tidak ada data yang dimuat sebelum login.
+             * showApp() memanggil navigate('calendar') + bootstrapApp(),
+             * yang me-render semua view lewat refreshAllViews(). */
+            const username = await validateSession();
+            if (username) { showApp(username); }
+            else { showLogin(); }
         });
 
         async function bootstrapApp() {

@@ -16,6 +16,17 @@
  *   GAS_API_SECRET dari Environment Variables server.
  * - Respons GAS yang bukan JSON tidak lagi membuat server crash;
  *   dikembalikan sebagai 502 dengan pesan yang jelas.
+ *
+ * LOGIN (2026-11-27, GAS v8 sudah live):
+ * - Aksi auth publik ("login", "logout", "validate_session") diteruskan
+ *   TANPA secret — tujuannya justru mendapatkan / memeriksa sesi.
+ * - Semua aksi pengguna lain dan GET "bootstrap" WAJIB session_token yang
+ *   valid: proxy memvalidasinya dulu ke GAS (validate_session,
+ *   server-ke-server dengan GAS_API_SECRET) sebelum meneruskan; tanpa sesi
+ *   yang valid proxy mengembalikan 401 dan TIDAK meneruskan panggilan.
+ * - Tanpa ini, halaman login hanya hiasan: proxy yang selalu menyuntikkan
+ *   secret untuk semua orang berarti siapa pun bisa memanggil semua action
+ *   tanpa login.
  */
 
 const GET_ENDPOINT_ALLOWLIST = ["bootstrap"];
@@ -34,6 +45,30 @@ const POST_ACTION_ALLOWLIST = [
   "delete_brand_context",
   "learn_brand_style"
 ];
+
+/* Aksi auth publik — BOLEH dipanggil tanpa sesi dan tanpa secret, karena
+ * tujuannya justru mendapatkan / memeriksa sesi. Ketiga aksi ini di GAS
+ * tidak butuh secret (Code.gs doPost merutekannya sebelum pemeriksaan
+ * secret). */
+const PUBLIC_AUTH_ACTIONS = ["login", "logout", "validate_session"];
+
+/* Validasi session_token klien ke GAS, server-ke-server (memakai
+ * GAS_API_SECRET, bukan token klien). True hanya bila GAS menjawab
+ * { success: true }. Tanpa cache antar-request: sesi bisa dicabut
+ * (baris SESSIONS dihapus) dan pencabutan harus langsung berlaku. */
+async function isSessionValid(GAS_URL, API_SECRET, sessionToken) {
+  if (!sessionToken || typeof sessionToken !== "string") return false;
+  try {
+    const { data } = await forwardToGas(GAS_URL, API_SECRET, {
+      method: "POST",
+      url: GAS_URL,
+      body: { action: "validate_session", session_token: sessionToken, secret: API_SECRET }
+    });
+    return !!(data && data.success === true);
+  } catch (e) {
+    return false;
+  }
+}
 
 async function forwardToGas(GAS_URL, API_SECRET, { method, url, body }) {
   const gasRes = await fetch(url, {
@@ -70,6 +105,11 @@ export default async function handler(req, res) {
       if (!GET_ENDPOINT_ALLOWLIST.includes(endpoint)) {
         return res.status(403).json({ success: false, error: `Endpoint "${endpoint}" tidak diizinkan lewat proxy ini.` });
       }
+      /* LOGIN: bootstrap hanya untuk pengguna yang sudah login. */
+      const sessionOk = await isSessionValid(GAS_URL, API_SECRET, req.query.session_token);
+      if (!sessionOk) {
+        return res.status(401).json({ success: false, error: "Sesi tidak valid. Silakan login lagi." });
+      }
       const targetUrl = `${GAS_URL}?api=${encodeURIComponent(endpoint)}&secret=${encodeURIComponent(API_SECRET)}`;
       const { status, data } = await forwardToGas(GAS_URL, API_SECRET, { method: "GET", url: targetUrl });
       return res.status(status).json(data);
@@ -78,8 +118,18 @@ export default async function handler(req, res) {
     if (req.method === "POST") {
       const body = req.body && typeof req.body === "object" ? req.body : {};
       const { secret: _clientSecret, action, ...rest } = body;
+      /* LOGIN: aksi auth publik diteruskan TANPA secret. */
+      if (typeof action === "string" && PUBLIC_AUTH_ACTIONS.includes(action)) {
+        const { status, data } = await forwardToGas(GAS_URL, API_SECRET, { method: "POST", url: GAS_URL, body: { action, ...rest } });
+        return res.status(status).json(data);
+      }
       if (typeof action !== "string" || !POST_ACTION_ALLOWLIST.includes(action)) {
         return res.status(403).json({ success: false, error: `Action "${String(action)}" tidak diizinkan lewat proxy ini.` });
+      }
+      /* LOGIN: semua aksi pengguna lain wajib sesi yang valid. */
+      const sessionOk = await isSessionValid(GAS_URL, API_SECRET, body.session_token);
+      if (!sessionOk) {
+        return res.status(401).json({ success: false, error: "Sesi tidak valid. Silakan login lagi." });
       }
       const payload = { ...rest, action, secret: API_SECRET };
       const { status, data } = await forwardToGas(GAS_URL, API_SECRET, { method: "POST", url: GAS_URL, body: payload });

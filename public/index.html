@@ -80,8 +80,12 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <button type="button" onclick="bootstrapApp()" class="apple-btn-secondary px-3 py-2 text-xs flex items-center gap-1.5"><i class="ph ph-arrows-clockwise"></i> <span class="hidden sm:inline">Sync</span></button>
-                <button type="button" onclick="openNewComposerPost()" class="bg-gray-900 hover:bg-black text-white rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-1.5 cursor-pointer"><i class="ph ph-plus"></i> Buat Post</button>
+                <span id="header-username" class="hidden text-xs font-semibold text-gray-500"></span>
+                <button type="button" id="logout-btn" onclick="handleLogout()" class="apple-btn-secondary px-3 py-2 text-xs hidden">Keluar</button>
+                <span id="header-actions" class="flex items-center gap-2">
+                    <button type="button" onclick="bootstrapApp()" class="apple-btn-secondary px-3 py-2 text-xs flex items-center gap-1.5"><i class="ph ph-arrows-clockwise"></i> <span class="hidden sm:inline">Sync</span></button>
+                    <button type="button" onclick="openNewComposerPost()" class="bg-gray-900 hover:bg-black text-white rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-1.5 cursor-pointer"><i class="ph ph-plus"></i> Buat Post</button>
+                </span>
             </div>
         </header>
 
@@ -98,6 +102,22 @@
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 md:p-8" id="app-container">
+
+            <!-- 0. VIEW: LOGIN -->
+            <div id="view-login" class="view-section max-w-md mx-auto pt-24">
+                <div class="apple-card p-8">
+                    <h1 class="text-2xl font-extrabold mb-1">ContentPlan</h1>
+                    <p class="text-sm text-gray-500 mb-6">Masuk untuk membuka aplikasi.</p>
+                    <form id="login-form" onsubmit="handleLoginSubmit(event)">
+                        <label class="apple-label" for="login-username">Username</label>
+                        <input id="login-username" class="apple-input mb-3" type="text" autocomplete="username" required>
+                        <label class="apple-label" for="login-password">Password</label>
+                        <input id="login-password" class="apple-input mb-4" type="password" autocomplete="current-password" required>
+                        <p id="login-error" class="hidden text-sm text-red-600 mb-3"></p>
+                        <button class="apple-btn w-full py-2.5" type="submit">Masuk</button>
+                    </form>
+                </div>
+            </div>
 
             <!-- 1. VIEW: KALENDER & QUEUE SLOTS -->
             <div id="view-calendar" class="view-section space-y-5 max-w-6xl mx-auto">
