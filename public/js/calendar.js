@@ -46,7 +46,7 @@
                 });
 
                 activeSlots.forEach(slot => {
-                    if (String(slot[dayKey]) === "TRUE") {
+                    if (String(slot[dayKey]).toUpperCase() === "TRUE") {
                         const slotClean = cleanTimeStr(slot.time_slot, '19:00');
                         const isFilled = dayContents.some(c => cleanTimeStr(c.scheduled_time, '') === slotClean && c.brand_name === slot.brand_name);
                         if (!isFilled) {

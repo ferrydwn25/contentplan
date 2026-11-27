@@ -18,7 +18,7 @@
             brandSlots.forEach(s => {
                 const slotClean = cleanTimeStr(s.time_slot, '19:00');
                 let checkboxes = days.map(d => `
-                    <td class="py-3"><input type="checkbox" ${String(s[d]) === 'TRUE' ? 'checked' : ''} onchange="apiPost('toggle_slot', {slotId:'${s.slot_id}', dayKey:'${d}', value:this.checked})" class="w-4 h-4 accent-indigo-600 cursor-pointer"></td>
+                    <td class="py-3"><input type="checkbox" ${String(s[d]).toUpperCase() === 'TRUE' ? 'checked' : ''} onchange="apiPost('toggle_slot', {slotId:'${s.slot_id}', dayKey:'${d}', value:this.checked})" class="w-4 h-4 accent-indigo-600 cursor-pointer"></td>
                 `).join('');
                 tbody.innerHTML += `<tr><td class="py-3 text-left font-bold">${slotClean}</td>${checkboxes}<td><button type="button" onclick="apiPost('delete_slot', {slotId:'${s.slot_id}'}).then(bootstrapApp)" class="text-red-500 cursor-pointer"><i class="ph ph-trash"></i></button></td></tr>`;
             });
