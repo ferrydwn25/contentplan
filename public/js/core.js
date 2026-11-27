@@ -98,6 +98,34 @@
             }, 3500);
         }
 
+        /* Dialog konfirmasi di dalam app (pengganti confirm() bawaan browser).
+         * Alasan: confirm() native di-dismiss otomatis (return false) oleh
+         * browser headless/otomasi — tombol Hapus tampak tidak berfungsi dan
+         * tidak ada dialog yang terlihat — dan tampilannya juga tidak
+         * konsisten dengan UI app. Modal ini elemen DOM biasa: terlihat,
+         * bisa diklik, dan bisa diverifikasi live. Mengembalikan Promise
+         * boolean; pakai dengan await di semua aksi destruktif. */
+        let _confirmResolve = null;
+        function confirmDialog(message, okLabel) {
+            return new Promise((resolve) => {
+                if (_confirmResolve) _confirmResolve(false);
+                _confirmResolve = resolve;
+                document.getElementById('app-confirm-msg').innerText = message;
+                document.getElementById('app-confirm-ok').innerText = okLabel || 'Ya, hapus';
+                const modal = document.getElementById('app-confirm-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            });
+        }
+        function _closeConfirmDialog(result) {
+            const modal = document.getElementById('app-confirm-modal');
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+            if (_confirmResolve) { const r = _confirmResolve; _confirmResolve = null; r(!!result); }
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && _confirmResolve) _closeConfirmDialog(false);
+        });
+
         function cleanTimeStr(val, fallback = '19:00') {
             if (!val) return fallback;
             const s = String(val).trim();

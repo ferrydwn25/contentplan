@@ -25,7 +25,7 @@
         async function disconnectOAuth(connId, platformName) {
             const conn = state.connections.find(c => c.conn_id === connId);
             const label = conn ? `${conn.username} (${platformName || conn.platform})` : (platformName || 'OAuth');
-            if (!confirm(`Putuskan koneksi ${label}? Feeds, analitik, dan auto-publish dari akun ini akan berhenti.`)) return;
+            if (!await confirmDialog(`Putuskan koneksi ${label}? Feeds, analitik, dan auto-publish dari akun ini akan berhenti.`, 'Ya, putuskan')) return;
             const res = await apiPost('disconnect_oauth', { connId });
             if (res.success) {
                 showToast(`Koneksi ${platformName || 'OAuth'} berhasil dibatalkan!`);

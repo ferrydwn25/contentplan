@@ -25,7 +25,7 @@
         }
 
         async function deleteSlotById(slotId, timeLabel) {
-            if (!confirm(`Hapus slot jam ${timeLabel}? Konten yang sudah terjadwal di jam itu tidak ikut terhapus, tapi tidak akan ada lagi slot kosong di jam tersebut.`)) return;
+            if (!await confirmDialog(`Hapus slot jam ${timeLabel}? Konten yang sudah terjadwal di jam itu tidak ikut terhapus, tapi tidak akan ada lagi slot kosong di jam tersebut.`)) return;
             await apiPost('delete_slot', { slotId });
             showToast(`Slot jam ${timeLabel} dihapus.`);
             bootstrapApp();

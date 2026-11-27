@@ -147,7 +147,7 @@
             if (!b) return;
             const nContents = state.contents.filter(c => c.brand_name === b.brand_name).length;
             const nSlots = state.slots.filter(s => s.brand_name === b.brand_name).length;
-            if (!confirm(`Hapus brand "${b.brand_name}"? ${nContents} konten dan ${nSlots} slot memakai brand ini — konten/slot itu tetap ada, tapi brand-nya tidak lagi dikenal. Lanjutkan?`)) return;
+            if (!await confirmDialog(`Hapus brand "${b.brand_name}"? ${nContents} konten dan ${nSlots} slot memakai brand ini — konten/slot itu tetap ada, tapi brand-nya tidak lagi dikenal. Lanjutkan?`)) return;
             await apiPost('delete_brand_context', { brandId });
             showToast(`Brand "${b.brand_name}" dihapus.`);
             if (state.activeBrand === b.brand_name) state.activeBrand = 'ALL';

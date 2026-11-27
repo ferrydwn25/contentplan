@@ -101,6 +101,18 @@
             <span id="app-toast-msg">Tersimpan!</span>
         </div>
 
+        <!-- MODAL KONFIRMASI (pengganti confirm() native — lihat confirmDialog
+             di core.js). Klik overlay / Batal / Escape = batal. -->
+        <div id="app-confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4" onclick="if (event.target === this) _closeConfirmDialog(false)">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-5">
+                <p id="app-confirm-msg" class="text-sm text-gray-900 leading-relaxed"></p>
+                <div class="flex gap-2 mt-4">
+                    <button type="button" onclick="_closeConfirmDialog(false)" class="apple-btn-secondary flex-1 py-2.5">Batal</button>
+                    <button type="button" id="app-confirm-ok" onclick="_closeConfirmDialog(true)" class="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold cursor-pointer">Ya, hapus</button>
+                </div>
+            </div>
+        </div>
+
         <div class="flex-1 overflow-y-auto p-4 md:p-8" id="app-container">
 
             <!-- LOADING: tampil pertama sampai gate sesi memutuskan (login/app).
