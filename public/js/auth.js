@@ -25,6 +25,7 @@ async function validateSession() {
 
 function showLogin() {
     document.getElementById('view-login').classList.remove('hidden');
+    document.getElementById('app-header').classList.add('hidden');
     document.getElementById('sidebar').classList.add('hidden');
     document.querySelectorAll('.view-section:not(#view-login)')
         .forEach(el => el.classList.add('hidden'));
@@ -36,6 +37,7 @@ function showLogin() {
 
 function showApp(username) {
     document.getElementById('view-login').classList.add('hidden');
+    document.getElementById('app-header').classList.remove('hidden');
     document.getElementById('sidebar').classList.remove('hidden');
     document.getElementById('logout-btn').classList.remove('hidden');
     const chip = document.getElementById('header-username');
