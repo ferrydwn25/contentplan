@@ -1,0 +1,28 @@
+/* ContentPlan — app.css
+   Seluruh isi <style> dari public/index.html baris 12-36, dipindah UTUH tanpa perubahan.
+   Sumber: main @ 6fe8b7fa (public/index.html, 1.747 baris). */
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #F5F5F7; color: #1D1D1F; }
+        .apple-card { background: #FFFFFF; border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); }
+        .apple-btn { background: #007AFF; color: white; border-radius: 10px; font-weight: 600; font-size: 13px; transition: all 0.2s; cursor: pointer; }
+        .apple-btn:hover { background: #0062CC; }
+        .apple-btn-secondary { background: #F2F2F7; color: #1D1D1F; border-radius: 10px; font-weight: 600; font-size: 13px; transition: all 0.2s; cursor: pointer; }
+        .apple-btn-secondary:hover { background: #E5E5EA; }
+        .apple-input { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 10px; padding: 10px 12px; font-size: 13px; width: 100%; outline: none; transition: 0.2s; }
+        .apple-input:focus { background: #FFFFFF; border-color: #007AFF; box-shadow: 0 0 0 3px rgba(0,122,255,0.1); }
+        .apple-label { display: block; font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+
+        .nav-item { display: flex; align-items: center; gap: 11px; padding: 9.5px 12px; border-radius: 11px; font-size: 13.5px; font-weight: 500; color: #4B5563; cursor: pointer; transition: 0.15s; }
+        .nav-item:hover { background: #F3F4F6; color: #111827; }
+        .nav-active { background: #EFF6FF !important; color: #007AFF !important; font-weight: 700; }
+
+        .pillar-card { border: 1.5px solid #E5E7EB; border-radius: 16px; padding: 18px; text-align: center; cursor: pointer; transition: all 0.2s; background: #FFFFFF; }
+        .pillar-card:hover { border-color: #9CA3AF; transform: translateY(-2px); }
+        .pillar-selected { border-color: #111827 !important; background: #F3F4F6 !important; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+
+        .cal-cell { min-height: 105px; padding: 8px; border: 1px solid #F3F4F6; background: #fff; }
+        .cal-event { padding: 4px 7px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-left: 3px solid #007AFF; background: #EFF6FF; color: #1E40AF; cursor: pointer; }
+        .slot-pill { border: 1.5px dashed #D1D5DB; border-radius: 7px; padding: 5px 6px; font-size: 11px; color: #6B7280; text-align: center; margin-top: 4px; background: #F9FAFB; cursor: pointer; transition: 0.2s; }
+        .slot-pill:hover { border-color: #007AFF; color: #007AFF; background: #EFF6FF; }
+
+        .phone-mockup { width: 295px; height: 530px; border: 10px solid #1F2937; border-radius: 36px; background: #000; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.16); margin: 0 auto; }
+        .phone-notch { width: 105px; height: 18px; background: #1F2937; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 20; }
