@@ -43,7 +43,9 @@ const POST_ACTION_ALLOWLIST = [
   "add_slot",
   "save_brand_context",
   "delete_brand_context",
-  "learn_brand_style"
+  "learn_brand_style",
+  /* P2 (DRAFT, butuh deploy GAS v10): persistensi urutan feed. */
+  "save_feed_order"
 ];
 
 /* Aksi auth publik — BOLEH dipanggil tanpa sesi dan tanpa secret, karena

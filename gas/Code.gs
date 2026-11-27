@@ -185,6 +185,9 @@ function routePostAction_(action, body) {
       return { success: true, data: res.data || p, scheduled_date: p.scheduled_date, scheduled_time: p.scheduled_time, autoQueued: false };
     }
     case 'delete_post': return handleDeleteData('CONTENTS', body.contentId || body.content_id || '');
+    /* P2 (DRAFT, butuh deploy GAS v10): persistensi urutan feed. */
+    case 'save_feed_order': return saveFeedOrder_(body.brandName || body.brand_name || '', body.platform || '', body.orderedIds || body.ordered_ids || []);
+    case 'get_feed_order': return getFeedOrder_(body.brandName || body.brand_name || '', body.platform || '');
     case 'upload_asset': return handleUploadMedia(body.payload || body);
     case 'mark_published_by_cron': return markPublishedByCron(body.publishedIds || []);
     case 'sync_inbox_batch': return syncInboxBatch_(body.comments || []);

@@ -28,12 +28,12 @@
  * ============================================================================
  */
 
-/* 16 tab yang dibuat setup — sesuai CONFIG asli. */
+/* 17 tab yang dibuat setup — sesuai CONFIG asli + FEED_LAYOUT (P2). */
 var SETUP_SHEET_NAMES = [
   'SETTINGS', 'ACCOUNTS', 'CONTENTS', 'CONTENT_METRICS',
   'ACCOUNT_METRICS', 'CAMPAIGNS', 'MEDIA_LIBRARY', 'IMPORT_LOG',
   'ACTIVITY_LOG', 'NOTIFICATIONS', 'SCHEDULE_SLOTS', 'BRAND_CONTEXT',
-  'OAUTH_CONNECTIONS', 'UNIFIED_INBOX', 'USERS', 'SESSIONS'
+  'OAUTH_CONNECTIONS', 'UNIFIED_INBOX', 'USERS', 'SESSIONS', 'FEED_LAYOUT'
 ];
 
 function setupContentPlan() {
@@ -41,7 +41,7 @@ function setupContentPlan() {
     createSheetIfNotExists(name, getSheetHeaders_(name));
   });
   seedDefaultData();
-  return { success: true, message: 'Setup selesai: 16 tab dipastikan ada.' };
+  return { success: true, message: 'Setup selesai: 17 tab dipastikan ada.' };
 }
 
 function createSheetIfNotExists(name, headers) {

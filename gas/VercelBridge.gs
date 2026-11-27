@@ -68,7 +68,9 @@ function getFullVercelBootstrapData() {
     scheduleSlots: DB_getAll(SHEET_NAMES.scheduleSlots),
     brandContext: DB_getAll(SHEET_NAMES.brandContext),
     oauthConnections: getOAuthConnections(),
-    unifiedInbox: DB_getAll(SHEET_NAMES.inbox)
+    unifiedInbox: DB_getAll(SHEET_NAMES.inbox),
+    /* P2 (DRAFT): urutan feed tersimpan per brand+platform. */
+    feedOrders: DB_getAll(SHEET_NAMES.feedLayout || 'FEED_LAYOUT')
     /* SENGAJA tanpa token. Frontend tidak butuh token. */
   };
 }
@@ -327,4 +329,52 @@ function saveComposerPostAutoQueue_(payload) {
   else res = handleCreateData('CONTENTS', p);
   if (!res.success) return res;
   return { success: true, data: res.data || p, scheduled_date: p.scheduled_date, scheduled_time: p.scheduled_time, autoQueued: true };
+}
+
+/* ------------------- P2 (DRAFT): urutan feed tersimpan ------------------ */
+/* Tab FEED_LAYOUT: satu baris per brand+platform, ordered_ids = JSON array
+ * content_id terjadwal. Hanya id yang masih ada dan belum Published yang
+ * disimpan — urutan adalah data presentasi, bukan data konten (skema
+ * CONTENTS tidak diubah). BUTUH DEPLOY GAS v10 untuk aktif. */
+
+function saveFeedOrder_(brandName, platform, orderedIds) {
+  if (!brandName || !platform) return { success: false, error: 'brandName dan platform wajib diisi.' };
+  if (!Array.isArray(orderedIds)) return { success: false, error: 'orderedIds harus array content_id.' };
+  var valid = DB_getAll(SHEET_NAMES.contents).filter(function (c) {
+    return String(c.brand_name) === String(brandName)
+      && String(c.platform) === String(platform)
+      && String(c.content_status || '') !== 'Published';
+  }).map(function (c) { return String(c.content_id); });
+  var clean = orderedIds.map(String).filter(function (id, i, arr) {
+    return valid.indexOf(id) !== -1 && arr.indexOf(id) === i;
+  });
+  ensureSheetExists(SHEET_NAMES.feedLayout, SHEET_HEADERS.FEED_LAYOUT);
+  var existing = DB_getAll(SHEET_NAMES.feedLayout).filter(function (r) {
+    return String(r.brand_name) === String(brandName) && String(r.platform) === String(platform);
+  })[0];
+  var record = {
+    layout_id: existing ? existing.layout_id : generateUUID(),
+    brand_name: brandName,
+    platform: platform,
+    ordered_ids: JSON.stringify(clean),
+    updated_at: new Date().toISOString()
+  };
+  var res;
+  if (existing) res = DB_update(SHEET_NAMES.feedLayout, existing.layout_id, 'layout_id', record);
+  else res = DB_insert(SHEET_NAMES.feedLayout, record);
+  if (!res.success) return res;
+  logActivity('save_feed_order', brandName + ' / ' + platform + ' (' + clean.length + ' item)');
+  return { success: true, ordered_ids: clean };
+}
+
+function getFeedOrder_(brandName, platform) {
+  if (!brandName || !platform) return { success: false, error: 'brandName dan platform wajib diisi.' };
+  var row = DB_getAll(SHEET_NAMES.feedLayout).filter(function (r) {
+    return String(r.brand_name) === String(brandName) && String(r.platform) === String(platform);
+  })[0];
+  if (!row) return { success: true, ordered_ids: [] };
+  var ids = [];
+  try { ids = JSON.parse(row.ordered_ids || '[]'); } catch (e) { ids = []; }
+  if (!Array.isArray(ids)) ids = [];
+  return { success: true, ordered_ids: ids };
 }

@@ -57,7 +57,9 @@ var SHEET_NAMES = {
   oauthConnections: 'OAUTH_CONNECTIONS',
   inbox: 'UNIFIED_INBOX',
   users: 'USERS',
-  sessions: 'SESSIONS'
+  sessions: 'SESSIONS',
+  /* P2 (DRAFT, butuh deploy GAS v10): urutan feed per brand+platform. */
+  feedLayout: 'FEED_LAYOUT'
 };
 
 /**
@@ -85,7 +87,10 @@ var SHEET_HEADERS = {
   NOTIFICATIONS: ['notification_id', 'brand_name', 'message', 'is_read', 'created_at'], /* TODO VERIFIKASI */
   UNIFIED_INBOX: ['msg_id', 'brand_name', 'platform', 'post_id', 'post_title', 'sender_username', 'comment_text', 'received_at', 'status', 'reply_text'], /* TODO VERIFIKASI */
   USERS: ['user_id', 'username', 'password_hash', 'salt', 'role', 'is_active', 'created_at', 'updated_at'],
-  SESSIONS: ['session_id', 'user_id', 'username', 'expires_at', 'created_at']
+  SESSIONS: ['session_id', 'user_id', 'username', 'expires_at', 'created_at'],
+  /* P2 (DRAFT, butuh deploy GAS v10): satu baris per brand+platform,
+   * ordered_ids = JSON array content_id terjadwal dalam urutan tampil. */
+  FEED_LAYOUT: ['layout_id', 'brand_name', 'platform', 'ordered_ids', 'updated_at']
 };
 
 /* ------------------------- konfigurasi & secret ------------------------- */
