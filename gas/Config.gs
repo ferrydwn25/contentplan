@@ -81,7 +81,7 @@ var SHEET_HEADERS = {
   ACCOUNT_METRICS: ['account_id', 'brand_name', 'platform', 'followers', 'views', 'recorded_at'], /* TODO VERIFIKASI */
   MEDIA_LIBRARY: ['file_id', 'file_name', 'mime_type', 'file_url', 'brand_name', 'uploaded_at'], /* TODO VERIFIKASI */
   IMPORT_LOG: ['imported_at', 'source', 'rows_imported', 'status', 'notes'], /* TODO VERIFIKASI */
-  ACTIVITY_LOG: ['timestamp', 'action', 'detail', 'actor'], /* TODO VERIFIKASI */
+  ACTIVITY_LOG: ['timestamp', 'action', 'details', 'actor'], /* header live terverifikasi 2026-11-27 */
   NOTIFICATIONS: ['notification_id', 'brand_name', 'message', 'is_read', 'created_at'], /* TODO VERIFIKASI */
   UNIFIED_INBOX: ['msg_id', 'brand_name', 'platform', 'post_id', 'post_title', 'sender_username', 'comment_text', 'received_at', 'status', 'reply_text'], /* TODO VERIFIKASI */
   USERS: ['user_id', 'username', 'password_hash', 'salt', 'role', 'is_active', 'created_at', 'updated_at'],

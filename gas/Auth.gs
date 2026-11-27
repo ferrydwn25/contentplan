@@ -84,8 +84,9 @@ function authFindUser_(username) {
 /* --------------------------- rate limit ---------------------------------- */
 
 /* Hitung percobaan login gagal untuk username ini dalam 15 menit terakhir,
- * dari ACTIVITY_LOG (kolom: timestamp, action, detail, actor — detail
- * berisi username). Bila ACTIVITY_LOG belum ada, anggap 0 (fail-open
+ * dari ACTIVITY_LOG (kolom: timestamp, action, details, actor — details
+ * berisi username; jatuh kembali ke 'detail' bila Sheet lama masih
+ * memakai header itu). Bila ACTIVITY_LOG belum ada, anggap 0 (fail-open
  * untuk hitungannya saja; login tetap dicek hash seperti biasa). */
 function authCountRecentFailures_(username) {
   try {
@@ -94,7 +95,8 @@ function authCountRecentFailures_(username) {
     var count = 0;
     for (var i = 0; i < rows.length; i++) {
       if (String(rows[i].action) !== 'login_failed') continue;
-      if (String(rows[i].detail) !== String(username)) continue;
+      var actor = (rows[i].details !== undefined ? rows[i].details : rows[i].detail);
+      if (String(actor) !== String(username)) continue;
       var t = new Date(rows[i].timestamp).getTime();
       if (!isNaN(t) && t >= cutoff) count++;
     }
