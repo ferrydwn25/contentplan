@@ -247,3 +247,84 @@ function deleteSlot(slotId) {
   var res = DB_delete(SHEET_NAMES.scheduleSlots, slotId, 'slot_id');
   return res.success ? { success: true } : res;
 }
+
+/* ------------------- auto-queue: slot kosong berikutnya ----------------- */
+/* Dipakai tombol "Jadwalkan ke Slot Berikutnya" (composer.js mengirim
+ * autoQueue: true). Sebelumnya tidak ada satu pun baris yang membaca
+ * autoQueue, sehingga tombol itu menyimpan persis seperti "Simpan Jadwal
+ * Ini" memakai tanggal/jam di form. */
+
+function _slotDayOn_(v) {
+  return v === true || v === 1 || String(v).toUpperCase() === 'TRUE' || String(v) === '1';
+}
+
+function _cleanTimeGS_(val, fallback) {
+  if (!val) return fallback || '';
+  var s = String(val).trim();
+  var m = s.match(/(\d{1,2}:\d{2})/);
+  if (!m) return fallback || '';
+  var parts = m[1].split(':');
+  return ('0' + parts[0]).slice(-2) + ':' + parts[1];
+}
+
+/* Cari slot kosong berikutnya untuk sebuah brand: mulai hari ini (waktu
+ * Asia/Jakarta), cek hari aktif slot (mon..sun), jam slot yang belum lewat,
+ * dan belum ditempati konten non-Published di tanggal+jam itu. */
+function findNextFreeSlot_(brandName) {
+  if (!brandName) return { success: false, error: 'brandName wajib diisi.' };
+  var slots = DB_getAll(SHEET_NAMES.scheduleSlots).filter(function (s) {
+    return String(s.brand_name) === String(brandName) && _slotDayOn_(s.is_active);
+  });
+  if (slots.length === 0) {
+    return { success: false, error: 'Brand "' + brandName + '" belum punya slot. Tambah slot di Pengaturan & Slot.' };
+  }
+  var occupied = {};
+  DB_getAll(SHEET_NAMES.contents).forEach(function (c) {
+    if (String(c.brand_name) !== String(brandName)) return;
+    if (String(c.content_status || '') === 'Published') return;
+    var d = String(c.scheduled_date || '').slice(0, 10);
+    var t = _cleanTimeGS_(c.scheduled_time, '');
+    if (d && t) occupied[d + ' ' + t] = true;
+  });
+  var dayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+  var now = new Date();
+  var nowHM = Utilities.formatDate(now, 'Asia/Jakarta', 'HH:mm');
+  for (var offset = 0; offset < 30; offset++) {
+    var day = new Date(now.getTime() + offset * 24 * 60 * 60 * 1000);
+    var dateStr = Utilities.formatDate(day, 'Asia/Jakarta', 'yyyy-MM-dd');
+    var key = dayKeys[day.getDay()];
+    var dayTimes = [];
+    slots.forEach(function (s) {
+      if (!_slotDayOn_(s[key])) return;
+      var t = _cleanTimeGS_(s.time_slot, '');
+      if (t && dayTimes.indexOf(t) === -1) dayTimes.push(t);
+    });
+    if (dayTimes.length === 0) continue;
+    dayTimes.sort();
+    for (var i = 0; i < dayTimes.length; i++) {
+      var t = dayTimes[i];
+      if (offset === 0 && t <= nowHM) continue; /* jam hari ini sudah lewat */
+      if (!occupied[dateStr + ' ' + t]) {
+        return { success: true, scheduled_date: dateStr, scheduled_time: t };
+      }
+    }
+  }
+  return { success: false, error: 'Tidak ada slot kosong dalam 30 hari ke depan untuk brand ini.' };
+}
+
+/* Simpan post ke slot kosong berikutnya (autoQueue). Mengembalikan jadwal
+ * akhir di top-level supaya toast frontend menampilkan jadwal yang benar
+ * (sebelumnya toast membaca res.scheduled_date yang tidak pernah ada). */
+function saveComposerPostAutoQueue_(payload) {
+  var p = payload || {};
+  if (!p.brand_name) return { success: false, error: 'brand_name wajib diisi.' };
+  var slot = findNextFreeSlot_(p.brand_name);
+  if (!slot.success) return slot;
+  p.scheduled_date = slot.scheduled_date;
+  p.scheduled_time = slot.scheduled_time;
+  var res;
+  if (p.content_id) res = handleUpdateData('CONTENTS', p.content_id, p);
+  else res = handleCreateData('CONTENTS', p);
+  if (!res.success) return res;
+  return { success: true, data: res.data || p, scheduled_date: p.scheduled_date, scheduled_time: p.scheduled_time, autoQueued: true };
+}

@@ -173,9 +173,16 @@ function routePostAction_(action, body) {
     case 'save_campaign': return handleSaveCampaign(body.payload || body);
     /* --- alias Vercel (TODO VERIFIKASI) --- */
     case 'save_composer_post': {
+      /* autoQueue (tombol "Jadwalkan ke Slot Berikutnya"): cari slot kosong
+       * berikutnya dari SCHEDULE_SLOTS + CONTENTS, isi tanggal/jam otomatis.
+       * Tanpa ini tombol tersebut identik dengan "Simpan Jadwal Ini". */
       var p = body.payload || {};
-      if (p.content_id) return handleUpdateData('CONTENTS', p.content_id, p);
-      return handleCreateData('CONTENTS', p);
+      if (body.autoQueue) return saveComposerPostAutoQueue_(p);
+      var res;
+      if (p.content_id) res = handleUpdateData('CONTENTS', p.content_id, p);
+      else res = handleCreateData('CONTENTS', p);
+      if (!res.success) return res;
+      return { success: true, data: res.data || p, scheduled_date: p.scheduled_date, scheduled_time: p.scheduled_time, autoQueued: false };
     }
     case 'delete_post': return handleDeleteData('CONTENTS', body.contentId || body.content_id || '');
     case 'upload_asset': return handleUploadMedia(body.payload || body);

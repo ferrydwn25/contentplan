@@ -29,7 +29,7 @@
             document.getElementById('comp-caption').value = "";
             document.getElementById('comp-thumb-url').value = "";
             document.getElementById('comp-status').value = "Ready";
-            document.getElementById('comp-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('comp-date').value = localDateStr(new Date());
             document.getElementById('comp-time').value = "19:00";
             if (state.activeBrand !== 'ALL') document.getElementById('comp-brand').value = state.activeBrand;
             updateLivePreview();
@@ -154,7 +154,17 @@
             btn.disabled = false;
 
             if (res.success) {
-                showToast(`Tersimpan! Jadwal: ${res.scheduled_date} jam ${res.scheduled_time}`);
+                if (autoQueue) {
+                    if (res.autoQueued) {
+                        showToast(`Dijadwalkan ke slot berikutnya: ${res.scheduled_date} jam ${res.scheduled_time}`);
+                    } else {
+                        /* GAS lama (sebelum deploy v10) belum mengenal autoQueue:
+                         * post tersimpan di jadwal form, bukan slot berikutnya. */
+                        showToast(`Tersimpan di jadwal form — auto-queue belum aktif di GAS (perlu deploy v10). Jadwal: ${res.scheduled_date} jam ${res.scheduled_time}`, true);
+                    }
+                } else {
+                    showToast(`Tersimpan! Jadwal: ${res.scheduled_date} jam ${res.scheduled_time}`);
+                }
                 await bootstrapApp();
                 navigate('calendar');
             } else {

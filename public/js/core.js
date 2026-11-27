@@ -86,6 +86,13 @@
             return fallback;
         }
 
+        /* Tanggal lokal YYYY-MM-DD dari Date — BUKAN toISOString() (UTC):
+         * sebelum 07:00 WIB, toISOString() masih tanggal kemarin. */
+        function localDateStr(d) {
+            const p = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+        }
+
         document.addEventListener("DOMContentLoaded", async () => {
             const params = new URLSearchParams(window.location.search);
             if (params.get('code') && params.get('state')) {
