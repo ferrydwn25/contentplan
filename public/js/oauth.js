@@ -8,7 +8,7 @@
             if (!el || !sel) return;
             const b = state.brands.find(x => x.brand_name === sel.value);
             if (b) {
-                el.innerHTML = `<i class="ph-fill ph-brain"></i> DNA Aktif: ${b.brand_name} • Mood: ${b.mood || b.tone_of_voice || 'Default'}`;
+                el.innerHTML = `<i class="ph-fill ph-brain"></i> DNA Aktif: ${esc(b.brand_name)} • Mood: ${esc(b.mood || b.tone_of_voice || 'Default')}`;
             }
         }
 
@@ -23,6 +23,9 @@
         }
 
         async function disconnectOAuth(connId, platformName) {
+            const conn = state.connections.find(c => c.conn_id === connId);
+            const label = conn ? `${conn.username} (${platformName || conn.platform})` : (platformName || 'OAuth');
+            if (!confirm(`Putuskan koneksi ${label}? Feeds, analitik, dan auto-publish dari akun ini akan berhenti.`)) return;
             const res = await apiPost('disconnect_oauth', { connId });
             if (res.success) {
                 showToast(`Koneksi ${platformName || 'OAuth'} berhasil dibatalkan!`);
@@ -55,8 +58,8 @@
                             : c.username;
                         return `
                             <div class="flex items-center justify-between gap-1 bg-green-50 border border-green-200 text-green-800 rounded-lg px-2 py-1 mt-1">
-                                <span class="text-[10px] font-bold truncate" title="${label}">✓ ${label}</span>
-                                <button type="button" onclick="disconnectOAuth('${c.conn_id}', '${p.name}')" class="text-red-500 hover:text-red-700 font-extrabold text-xs px-1 cursor-pointer" title="Batalkan / Putuskan koneksi ${c.username}">×</button>
+                                <span class="text-[10px] font-bold truncate" title="${esc(label)}">✓ ${esc(label)}</span>
+                                <button type="button" onclick="disconnectOAuth('${c.conn_id}', '${p.name}')" class="text-red-500 hover:text-red-700 font-extrabold text-xs px-1 cursor-pointer" title="Batalkan / Putuskan koneksi ${esc(c.username)}">×</button>
                             </div>
                         `;
                     }).join('');
@@ -96,7 +99,7 @@
                         <div class="flex justify-between items-center">
                             <h4 class="font-bold text-base text-gray-900">Koneksi ${p}</h4>
                             ${conn
-                                ? `<button type="button" onclick="disconnectOAuth('${conn.conn_id}', '${p}')" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">Cancel Hubungkan (${conn.username})</button>`
+                                ? `<button type="button" onclick="disconnectOAuth('${conn.conn_id}', '${p}')" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">Cancel Hubungkan (${esc(conn.username)})</button>`
                                 : `<button type="button" onclick="connectOAuthPlatform('${p}')" class="bg-gray-900 text-white px-4 py-2 rounded-full text-xs font-bold cursor-pointer">Hubungkan ${p}</button>`
                             }
                         </div>

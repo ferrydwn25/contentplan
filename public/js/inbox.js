@@ -72,27 +72,32 @@
                 container.innerHTML += `
                     <div class="apple-card p-5 space-y-3">
                         <div class="flex justify-between items-center text-xs">
-                            <span class="font-bold text-gray-900">${m.sender_username} <span class="text-blue-600 font-semibold">• ${m.platform}</span> <span class="text-gray-400 font-normal">(${m.brand_name})</span></span>
+                            <span class="font-bold text-gray-900">${esc(m.sender_username)} <span class="text-blue-600 font-semibold">• ${esc(m.platform)}</span> <span class="text-gray-400 font-normal">(${esc(m.brand_name)})</span></span>
                             <span class="text-gray-400">${String(m.received_at).split('T')[0]}</span>
                         </div>
-                        <p class="text-sm text-gray-800 bg-gray-50 p-3 rounded-xl">"${m.comment_text}"</p>
+                        <p class="text-sm text-gray-800 bg-gray-50 p-3 rounded-xl">"${esc(m.comment_text)}"</p>
                         ${m.status === 'Unreplied' ? `
                             <div class="flex gap-2">
-                                <input type="text" id="reply-input-${m.msg_id}" class="apple-input text-xs" placeholder="Tulis balasan langsung ke ${m.platform}...">
-                                <button type="button" onclick="sendInboxReply('${m.msg_id}', '${m.platform}', '${m.brand_name}')" class="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">Balas</button>
+                                <input type="text" id="reply-input-${m.msg_id}" class="apple-input text-xs" placeholder="Tulis balasan langsung ke ${esc(m.platform)}...">
+                                <button type="button" onclick="sendInboxReply('${m.msg_id}')" class="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-bold cursor-pointer">Balas</button>
                             </div>
                         ` : `
-                            <p class="text-xs text-green-700 font-semibold">✓ Dibalas: "${m.reply_text}"</p>
+                            <p class="text-xs text-green-700 font-semibold">✓ Dibalas: "${esc(m.reply_text)}"</p>
                         `}
                     </div>
                 `;
             });
         }
 
-        async function sendInboxReply(msgId, platform, brandName) {
+        async function sendInboxReply(msgId) {
             const input = document.getElementById(`reply-input-${msgId}`);
             if (!input || !input.value.trim()) return;
             const replyText = input.value.trim();
+            /* platform/brand diambil dari state, bukan disisipkan ke string
+             * onclick — nama brand bisa mengandung ' yang merusak handler. */
+            const item = state.inbox.find(m => String(m.msg_id) === String(msgId)) || {};
+            const platform = item.platform || '';
+            const brandName = item.brand_name || '';
 
             const res = await fetch('/api/social-sync', {
                 method: 'POST',

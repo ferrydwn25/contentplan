@@ -16,26 +16,26 @@
                         <div class="space-y-2.5">
                             <div class="flex justify-between items-start gap-2">
                                 <div>
-                                    <h4 class="font-extrabold text-base text-gray-900">${b.brand_name}</h4>
-                                    <span class="text-[11px] bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-bold inline-block mt-1">${b.niche || 'General'}</span>
+                                    <h4 class="font-extrabold text-base text-gray-900">${esc(b.brand_name)}</h4>
+                                    <span class="text-[11px] bg-blue-50 text-blue-700 px-2.5 py-0.5 rounded-full font-bold inline-block mt-1">${esc(b.niche || 'General')}</span>
                                 </div>
                                 <div class="flex gap-1">
                                     <button type="button" onclick="editBrandForm('${b.brand_id}')" class="p-2 text-gray-500 hover:bg-gray-100 rounded-lg cursor-pointer" title="Edit Brand DNA"><i class="ph ph-pencil-simple"></i></button>
-                                    <button type="button" onclick="deleteBrandItem('${b.brand_id}', '${b.brand_name}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer" title="Hapus Brand"><i class="ph ph-trash"></i></button>
+                                    <button type="button" onclick="deleteBrandItem('${b.brand_id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg cursor-pointer" title="Hapus Brand"><i class="ph ph-trash"></i></button>
                                 </div>
                             </div>
                             <div class="text-xs text-gray-600 space-y-1 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                                <p><strong>Mood:</strong> ${b.mood || '-'}</p>
-                                <p><strong>Gaya Narasi:</strong> ${b.narrative_style || '-'}</p>
-                                <p><strong>Guidelines:</strong> ${b.guidelines || '-'}</p>
+                                <p><strong>Mood:</strong> ${esc(b.mood || '-')}</p>
+                                <p><strong>Gaya Narasi:</strong> ${esc(b.narrative_style || '-')}</p>
+                                <p><strong>Guidelines:</strong> ${esc(b.guidelines || '-')}</p>
                             </div>
                             ${b.learned_patterns ? `
                                 <div class="text-[11px] bg-indigo-50/70 text-indigo-800 p-2.5 rounded-xl border border-indigo-100">
-                                    <strong><i class="ph-fill ph-sparkle"></i> Hasil Learning:</strong> ${b.learned_patterns}
+                                    <strong><i class="ph-fill ph-sparkle"></i> Hasil Learning:</strong> ${esc(b.learned_patterns)}
                                 </div>
                             ` : ''}
                         </div>
-                        <button type="button" onclick="triggerAutoLearn('${b.brand_name}', this)" class="apple-btn-secondary w-full py-2 text-xs flex items-center justify-center gap-1.5">
+                        <button type="button" onclick="triggerAutoLearn('${b.brand_id}', this)" class="apple-btn-secondary w-full py-2 text-xs flex items-center justify-center gap-1.5">
                             <i class="ph ph-brain"></i> Pelajari dari Postingan Sebelumnya
                         </button>
                     </div>
@@ -142,14 +142,21 @@
             }
         }
 
-        async function deleteBrandItem(brandId, brandName) {
+        async function deleteBrandItem(brandId) {
+            const b = state.brands.find(x => x.brand_id === brandId);
+            if (!b) return;
+            const nContents = state.contents.filter(c => c.brand_name === b.brand_name).length;
+            const nSlots = state.slots.filter(s => s.brand_name === b.brand_name).length;
+            if (!confirm(`Hapus brand "${b.brand_name}"? ${nContents} konten dan ${nSlots} slot memakai brand ini — konten/slot itu tetap ada, tapi brand-nya tidak lagi dikenal. Lanjutkan?`)) return;
             await apiPost('delete_brand_context', { brandId });
-            showToast(`Brand "${brandName}" dihapus.`);
-            if (state.activeBrand === brandName) state.activeBrand = 'ALL';
+            showToast(`Brand "${b.brand_name}" dihapus.`);
+            if (state.activeBrand === b.brand_name) state.activeBrand = 'ALL';
             bootstrapApp();
         }
 
-        async function triggerAutoLearn(brandName, btnEl) {
+        async function triggerAutoLearn(brandId, btnEl) {
+            const b = state.brands.find(x => x.brand_id === brandId);
+            const brandName = b ? b.brand_name : brandId;
             const orig = btnEl.innerHTML;
             btnEl.innerText = "Menganalisis histori post...";
             btnEl.disabled = true;

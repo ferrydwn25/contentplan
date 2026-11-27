@@ -74,7 +74,7 @@
             const insContainer = document.getElementById('an-insights-list');
             if (insContainer) {
                 insContainer.innerHTML = (s.insights || []).map(txt => `
-                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 leading-relaxed">${txt}</div>
+                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 leading-relaxed">${esc(txt)}</div>
                 `).join('');
             }
 
@@ -84,12 +84,12 @@
                     ? `<tr><td colspan="6" class="p-6 text-center text-gray-400">Belum ada data performa konten dari API.</td></tr>`
                     : s.topPosts.map(row => `
                         <tr class="hover:bg-gray-50">
-                            <td class="p-4 font-bold">${row.platform}</td>
-                            <td class="p-4 font-medium text-gray-900 max-w-xs truncate">${row.title}</td>
+                            <td class="p-4 font-bold">${esc(row.platform)}</td>
+                            <td class="p-4 font-medium text-gray-900 max-w-xs truncate">${esc(row.title)}</td>
                             <td class="p-4 font-bold">${row.views.toLocaleString()}</td>
                             <td class="p-4">${row.engagement.toLocaleString()}</td>
-                            <td class="p-4 text-green-600 font-bold">${row.er}</td>
-                            <td class="p-4 text-indigo-600 font-bold">${row.retention}</td>
+                            <td class="p-4 text-green-600 font-bold">${esc(row.er)}</td>
+                            <td class="p-4 text-indigo-600 font-bold">${esc(row.retention)}</td>
                         </tr>
                     `).join('');
             }

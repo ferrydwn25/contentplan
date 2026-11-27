@@ -267,15 +267,15 @@
                 grid.className = "grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-1.5";
                 grid.innerHTML = all.map(it => {
                     const inner = it.kind === 'scheduled'
-                        ? `<div onclick="editPostInComposer('${it.id}')" class="feed-tile-compact aspect-square group" title="${it.title}">
-                                ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition">` : `<div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-2"><span class="text-white text-[11px] font-bold leading-snug line-clamp-3 text-center">${it.title}</span></div>`}
+                        ? `<div onclick="editPostInComposer('${it.id}')" class="feed-tile-compact aspect-square group" title="${esc(it.title)}">
+                                ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition">` : `<div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-2"><span class="text-white text-[11px] font-bold leading-snug line-clamp-3 text-center">${esc(it.title)}</span></div>`}
                                 <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4 flex items-end justify-between">
                                     <span class="text-white text-[9px] font-bold">${it.date} • ${it.status}</span>
                                     <button type="button" onclick="event.stopPropagation(); deletePostById('${it.id}')" class="bg-black/60 hover:bg-red-600 text-white w-5 h-5 rounded-full text-[10px] font-bold cursor-pointer">×</button>
                                 </div>
                             </div>`
-                        : `<a href="${it.permalink}" target="_blank" class="feed-tile-compact aspect-square group" title="${it.title}">
-                                ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition">` : `<div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-2"><span class="text-white text-[11px] font-bold leading-snug line-clamp-3 text-center">${it.title}</span></div>`}
+                        : `<a href="${esc(it.permalink)}" target="_blank" class="feed-tile-compact aspect-square group" title="${esc(it.title)}">
+                                ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover group-hover:scale-105 transition">` : `<div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-2"><span class="text-white text-[11px] font-bold leading-snug line-clamp-3 text-center">${esc(it.title)}</span></div>`}
                                 <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4 flex items-end justify-between">
                                     <span class="text-green-300 text-[9px] font-bold">✓ Live • ♥ ${it.likes.toLocaleString()}</span>
                                     <span class="text-white/80 text-[9px] font-semibold">${it.date}</span>
@@ -292,10 +292,10 @@
                     <div onclick="editPostInComposer('${it.id}')" class="apple-card p-4 border-l-4 border-blue-600 cursor-pointer hover:bg-blue-50/20">
                         <div class="flex justify-between items-center text-xs mb-1.5">
                             <span class="font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full">📅 Terjadwal: ${it.date} ${it.time}</span>
-                            <span class="text-gray-400 font-semibold">${it.brand}</span>
+                            <span class="text-gray-400 font-semibold">${esc(it.brand)}</span>
                         </div>
-                        <h4 class="font-bold text-sm text-gray-900">${it.title}</h4>
-                        <p class="text-xs text-gray-600 mt-1 line-clamp-2">${it.caption || ''}</p>
+                        <h4 class="font-bold text-sm text-gray-900">${esc(it.title)}</h4>
+                        <p class="text-xs text-gray-600 mt-1 line-clamp-2">${esc(it.caption || '')}</p>
                     </div>
                 ` : `
                     <div class="apple-card p-4 space-y-1.5">
@@ -303,7 +303,7 @@
                             <span class="font-bold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-full">✓ Live di Threads</span>
                             <span class="text-gray-400">${it.date}</span>
                         </div>
-                        <p class="text-sm text-gray-800">${it.caption}</p>
+                        <p class="text-sm text-gray-800">${esc(it.caption)}</p>
                     </div>
                 `).join('');
                 return;
@@ -315,21 +315,21 @@
             grid.innerHTML = all.map(it => it.kind === 'scheduled' ? `
                 <div onclick="editPostInComposer('${it.id}')" class="feed-row-compact group">
                     <div class="w-12 shrink-0 aspect-[9/16] rounded-lg overflow-hidden bg-gray-900 flex items-center justify-center">
-                        ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover">` : `<span class="text-white text-[10px] font-bold px-1 text-center leading-tight line-clamp-3">${it.title}</span>`}
+                        ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover">` : `<span class="text-white text-[10px] font-bold px-1 text-center leading-tight line-clamp-3">${esc(it.title)}</span>`}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="font-bold text-xs text-gray-900 truncate">${it.title}</p>
-                        <p class="text-[11px] text-gray-500 mt-0.5">📅 ${it.date} ${it.time} • ${it.status} • ${it.brand}</p>
+                        <p class="font-bold text-xs text-gray-900 truncate">${esc(it.title)}</p>
+                        <p class="text-[11px] text-gray-500 mt-0.5">📅 ${it.date} ${it.time} • ${it.status} • ${esc(it.brand)}</p>
                     </div>
                     <button type="button" onclick="event.stopPropagation(); deletePostById('${it.id}')" class="bg-black/5 hover:bg-red-600 hover:text-white text-gray-500 w-6 h-6 rounded-full text-xs font-bold cursor-pointer shrink-0">×</button>
                 </div>
             ` : `
-                <a href="${it.permalink}" target="_blank" class="feed-row-compact group">
+                <a href="${esc(it.permalink)}" target="_blank" class="feed-row-compact group">
                     <div class="w-12 shrink-0 aspect-[9/16] rounded-lg overflow-hidden bg-gray-800 flex items-center justify-center">
-                        ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover">` : `<span class="text-white text-[10px] font-bold px-1 text-center leading-tight line-clamp-3">${it.title}</span>`}
+                        ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover">` : `<span class="text-white text-[10px] font-bold px-1 text-center leading-tight line-clamp-3">${esc(it.title)}</span>`}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="font-bold text-xs text-gray-900 truncate">${it.title}</p>
+                        <p class="font-bold text-xs text-gray-900 truncate">${esc(it.title)}</p>
                         <p class="text-[11px] text-gray-500 mt-0.5">✓ Live • ${it.date} • ▶ ${(it.views || 0).toLocaleString()} • ♥ ${(it.likes || 0).toLocaleString()} • 💬 ${(it.comments || 0).toLocaleString()}</p>
                     </div>
                 </a>
@@ -368,7 +368,7 @@
                         <div class="p-4 pt-10 flex items-center gap-3">
                             <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xl font-extrabold shrink-0">${brandLabel.charAt(0).toUpperCase()}</div>
                             <div class="flex-1 min-w-0">
-                                <p class="font-extrabold text-sm text-gray-900 truncate">${userName}</p>
+                                <p class="font-extrabold text-sm text-gray-900 truncate">${esc(userName)}</p>
                                 <p class="text-[11px] text-gray-500">${ordered.length + live.length} postingan${followers !== null ? ` • ${Number(followers).toLocaleString()} pengikut` : ''}</p>
                             </div>
                             <span class="text-[10px] font-bold ${conn ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'} px-2 py-1 rounded-full">${conn ? '✓ Terhubung' : 'Belum terhubung'}</span>
@@ -381,7 +381,7 @@
                         <div class="grid grid-cols-3 gap-0.5">
                             ${ordered.map(it => `
                                 <div data-feed-key="${it.key}" draggable="${state.feedReorder}" ondragstart="feedDragStart(event, '${it.id}')" ondragover="feedDragOver(event)" ondrop="feedDrop(event, '${it.id}')" onclick="selectFeedItem('${it.key}')" class="feed-tile-compact aspect-square ${state.feedReorder ? 'cursor-move ring-2 ring-indigo-400' : 'cursor-pointer'}">
-                                    ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover">` : `<div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-1"><span class="text-white text-[9px] font-bold leading-tight line-clamp-3 text-center">${it.title}</span></div>`}
+                                    ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover">` : `<div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-1"><span class="text-white text-[9px] font-bold leading-tight line-clamp-3 text-center">${esc(it.title)}</span></div>`}
                                     <span class="absolute top-1 left-1 bg-blue-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">📅 ${it.date}</span>
                                     ${state.feedReorder ? `<span class="absolute bottom-1 right-1 flex gap-0.5">
                                         <button type="button" onclick="event.stopPropagation(); moveFeedItem('${it.id}', -1)" class="bg-black/60 text-white w-5 h-5 rounded-full text-[10px] font-bold">↑</button>
@@ -389,8 +389,8 @@
                                     </span>` : ''}
                                 </div>`).join('')}
                             ${live.map(it => `
-                                <a href="${it.permalink}" target="_blank" data-feed-key="${it.key}" class="feed-tile-compact aspect-square cursor-pointer opacity-90">
-                                    ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover">` : `<div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-1"><span class="text-white text-[9px] font-bold leading-tight line-clamp-3 text-center">${it.title}</span></div>`}
+                                <a href="${esc(it.permalink)}" target="_blank" data-feed-key="${it.key}" class="feed-tile-compact aspect-square cursor-pointer opacity-90">
+                                    ${it.thumb ? `<img src="${it.thumb}" class="w-full h-full object-cover">` : `<div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center p-1"><span class="text-white text-[9px] font-bold leading-tight line-clamp-3 text-center">${esc(it.title)}</span></div>`}
                                     <span class="absolute top-1 left-1 bg-green-600 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">✓ Live</span>
                                 </a>`).join('')}
                         </div>
@@ -410,7 +410,7 @@
                         <div class="p-4 pt-10 flex items-center gap-3 border-b border-gray-100">
                             <div class="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center text-base font-extrabold shrink-0">${brandLabel.charAt(0).toUpperCase()}</div>
                             <div class="flex-1 min-w-0">
-                                <p class="font-extrabold text-sm text-gray-900 truncate">${userName}</p>
+                                <p class="font-extrabold text-sm text-gray-900 truncate">${esc(userName)}</p>
                                 <p class="text-[11px] text-gray-500">${ordered.length} terjadwal • ${live.length} live</p>
                             </div>
                         </div>
@@ -419,12 +419,12 @@
                                 <div class="w-9 h-9 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center text-xs font-extrabold shrink-0">${(it.brand || brandLabel).charAt(0).toUpperCase()}</div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-1.5 text-xs">
-                                        <span class="font-bold text-gray-900">${userName}</span>
+                                        <span class="font-bold text-gray-900">${esc(userName)}</span>
                                         <span class="text-gray-400">${it.date}${it.time ? ' ' + it.time : ''}</span>
                                         ${it.kind === 'scheduled' ? `<span class="text-blue-600 font-bold">📅 ${it.status}</span>` : `<span class="text-green-700 font-bold">✓ Live</span>`}
                                     </div>
-                                    <p class="font-bold text-[13px] text-gray-900 mt-0.5">${it.title}</p>
-                                    ${it.caption ? `<p class="text-xs text-gray-600 mt-0.5 line-clamp-3">${it.caption}</p>` : ''}
+                                    <p class="font-bold text-[13px] text-gray-900 mt-0.5">${esc(it.title)}</p>
+                                    ${it.caption ? `<p class="text-xs text-gray-600 mt-0.5 line-clamp-3">${esc(it.caption)}</p>` : ''}
                                     <div class="flex items-center gap-4 text-gray-400 text-xs mt-2">
                                         <span>♥ ${it.kind === 'live' ? it.likes.toLocaleString() : '—'}</span>
                                         <span>💬 ${it.kind === 'live' ? it.comments.toLocaleString() : '—'}</span>
@@ -464,14 +464,14 @@
                     </div>
                     <div class="phone-rail">${it.rail}</div>
                     <div class="absolute bottom-0 inset-x-0 p-4 pb-6 text-white">
-                        <p class="font-extrabold text-sm">${userName}</p>
-                        <p class="font-bold text-[13px] leading-snug mt-1 line-clamp-2">${it.title}</p>
-                        ${it.caption ? `<p class="text-xs text-white/80 mt-1 line-clamp-2">${it.caption}</p>` : ''}
+                        <p class="font-extrabold text-sm">${esc(userName)}</p>
+                        <p class="font-bold text-[13px] leading-snug mt-1 line-clamp-2">${esc(it.title)}</p>
+                        ${it.caption ? `<p class="text-xs text-white/80 mt-1 line-clamp-2">${esc(it.caption)}</p>` : ''}
                         ${it.kind === 'scheduled' && state.feedReorder ? `<div class="flex gap-2 mt-3">
                             <button type="button" onclick="event.stopPropagation(); moveFeedItem('${it.id}', -1)" class="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold">↑ Naik</button>
                             <button type="button" onclick="event.stopPropagation(); moveFeedItem('${it.id}', 1)" class="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold">↓ Turun</button>
                         </div>` : ''}
-                        ${it.kind === 'scheduled' ? `<p class="text-[10px] text-white/60 mt-2">Terjadwal — ${it.brand}</p>` : ''}
+                        ${it.kind === 'scheduled' ? `<p class="text-[10px] text-white/60 mt-2">Terjadwal — ${esc(it.brand)}</p>` : ''}
                     </div>
                 </div>`).join('');
         }
@@ -490,7 +490,7 @@
                     <span class="text-[11px] font-extrabold text-gray-400 w-5 text-center shrink-0">${i + 1}</span>
                     ${state.feedReorder ? `<span class="text-gray-300 shrink-0">⋮⋮</span>` : ''}
                     <div class="flex-1 min-w-0">
-                        <p class="text-xs font-bold text-gray-900 truncate">${it.title}</p>
+                        <p class="text-xs font-bold text-gray-900 truncate">${esc(it.title)}</p>
                         <p class="text-[10px] text-gray-500">${it.date} ${it.time} • ${it.status}</p>
                     </div>
                     ${state.feedReorder ? `<span class="flex gap-0.5 shrink-0">
@@ -504,7 +504,7 @@
                     <div data-feed-key="${it.key}" onclick="selectFeedItem('${it.key}')" class="feed-order-row opacity-70">
                         <span class="text-[11px] font-extrabold text-gray-300 w-5 text-center shrink-0">🔒</span>
                         <div class="flex-1 min-w-0">
-                            <p class="text-xs font-bold text-gray-700 truncate">${it.title}</p>
+                            <p class="text-xs font-bold text-gray-700 truncate">${esc(it.title)}</p>
                             <p class="text-[10px] text-gray-400">✓ Live • ${it.date}</p>
                         </div>
                     </div>`).join('')}` : '');
@@ -525,12 +525,12 @@
                     ${it.thumb ? `<img src="${it.thumb}" class="w-full aspect-[9/16] max-h-56 object-cover rounded-xl bg-gray-100">` : ''}
                     <div>
                         <p class="text-[10px] font-bold uppercase tracking-wider ${it.kind === 'live' ? 'text-green-700' : 'text-blue-600'}">${it.kind === 'live' ? '✓ Live di ' + state.feedPlatform : '📅 Terjadwal • ' + it.status}</p>
-                        <h4 class="font-extrabold text-sm text-gray-900 mt-1 leading-snug">${it.title}</h4>
-                        ${it.caption ? `<p class="text-xs text-gray-600 mt-1.5 leading-relaxed line-clamp-4">${it.caption}</p>` : ''}
+                        <h4 class="font-extrabold text-sm text-gray-900 mt-1 leading-snug">${esc(it.title)}</h4>
+                        ${it.caption ? `<p class="text-xs text-gray-600 mt-1.5 leading-relaxed line-clamp-4">${esc(it.caption)}</p>` : ''}
                     </div>
                     <div class="text-xs text-gray-600 space-y-1 bg-gray-50 p-3 rounded-xl border border-gray-100">
                         <p><strong>Tanggal:</strong> ${it.date}${it.time ? ' ' + it.time : ''}</p>
-                        ${it.brand ? `<p><strong>Brand:</strong> ${it.brand}</p>` : ''}
+                        ${it.brand ? `<p><strong>Brand:</strong> ${esc(it.brand)}</p>` : ''}
                         ${it.kind === 'live' ? `<p><strong>Performa:</strong> ▶ ${(it.views || 0).toLocaleString()} • ♥ ${(it.likes || 0).toLocaleString()} • 💬 ${(it.comments || 0).toLocaleString()}</p>` : ''}
                     </div>
                     ${it.kind === 'scheduled' ? `
@@ -538,6 +538,6 @@
                         <button type="button" onclick="editPostInComposer('${it.id}')" class="apple-btn flex-1 py-2 text-xs">Edit di Buat Post</button>
                         <button type="button" onclick="deletePostById('${it.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 flex-1 py-2 rounded-xl text-xs font-bold cursor-pointer">Hapus</button>
                     </div>` : (it.permalink ? `
-                    <a href="${it.permalink}" target="_blank" class="apple-btn-secondary block text-center py-2 text-xs">Buka post asli ↗</a>` : '')}
+                    <a href="${esc(it.permalink)}" target="_blank" class="apple-btn-secondary block text-center py-2 text-xs">Buka post asli ↗</a>` : '')}
                 </div>`;
         }

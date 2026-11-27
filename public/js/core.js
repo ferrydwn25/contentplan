@@ -93,6 +93,13 @@
             return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
         }
 
+        /* Escape HTML untuk SEMUA data dari Sheets/API sebelum disisipkan
+         * lewat innerHTML — judul/caption/komentar/nama file bisa berisi
+         * <, > atau " yang memecah markup atau menyisipkan HTML/JS. */
+        function esc(v) {
+            return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
         document.addEventListener("DOMContentLoaded", async () => {
             const params = new URLSearchParams(window.location.search);
             if (params.get('code') && params.get('state')) {
@@ -186,7 +193,7 @@
                 if (!el) return;
                 el.innerHTML = id === 'global-brand-switcher' ? '<option value="ALL">🌐 All Brands</option>' : '';
                 state.brands.forEach(b => {
-                    el.innerHTML += `<option value="${b.brand_name}">${b.brand_name}</option>`;
+                    el.innerHTML += `<option value="${esc(b.brand_name)}">${esc(b.brand_name)}</option>`;
                 });
             });
             document.getElementById('global-brand-switcher').value = state.activeBrand;

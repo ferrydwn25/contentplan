@@ -12,8 +12,8 @@
                 container.innerHTML += `
                     <div class="p-3 rounded-xl border border-gray-100 hover:border-blue-400 bg-gray-50 flex items-start justify-between gap-2 group">
                         <div onclick="editPostInComposer('${c.content_id}')" class="flex-1 min-w-0 cursor-pointer">
-                            <div class="flex justify-between text-[10px] font-bold text-gray-400 mb-1"><span>${c.platform}</span><span>${String(c.scheduled_date).split('T')[0]} ${tClean}</span></div>
-                            <p class="text-xs font-bold text-gray-900 line-clamp-2">${c.content_title}</p>
+                            <div class="flex justify-between text-[10px] font-bold text-gray-400 mb-1"><span>${esc(c.platform)}</span><span>${esc(String(c.scheduled_date).split('T')[0])} ${esc(tClean)}</span></div>
+                            <p class="text-xs font-bold text-gray-900 line-clamp-2">${esc(c.content_title)}</p>
                         </div>
                         <button type="button" onclick="deletePostById('${c.content_id}')" class="text-gray-400 hover:text-red-600 p-1 cursor-pointer" title="Hapus post"><i class="ph ph-trash text-sm"></i></button>
                     </div>
@@ -36,11 +36,14 @@
             navigate('composer');
         }
 
-        function openComposerForSlot(dateStr, timeStr, brandName) {
+        function openComposerForSlot(dateStr, timeStr, slotId) {
             openNewComposerPost();
             document.getElementById('comp-date').value = dateStr;
             document.getElementById('comp-time').value = cleanTimeStr(timeStr, "19:00");
-            if (brandName) document.getElementById('comp-brand').value = brandName;
+            /* Brand diambil dari state lewat slot_id — nama brand tidak
+             * disisipkan ke string onclick (bisa mengandung '). */
+            const slot = state.slots.find(s => s.slot_id === slotId);
+            if (slot && slot.brand_name) document.getElementById('comp-brand').value = slot.brand_name;
             updateLivePreview();
         }
 
@@ -65,6 +68,9 @@
 
         async function deletePostById(contentId) {
             if (!contentId) return;
+            const target = state.contents.find(x => x.content_id === contentId);
+            const label = target ? target.content_title : contentId;
+            if (!confirm(`Hapus post "${label}"? Jadwal ini akan dihapus permanen dari Sheets.`)) return;
             const res = await apiPost('delete_post', { contentId });
             if (res.success) {
                 showToast("Postingan berhasil dihapus!");
@@ -177,7 +183,7 @@
             if (!sel) return;
             sel.innerHTML = '<option value="">-- Pilih dari Perpustakaan Aset --</option>';
             state.assets.forEach(a => {
-                sel.innerHTML += `<option value="${a.file_url}">${a.file_name}</option>`;
+                sel.innerHTML += `<option value="${esc(a.file_url)}">${esc(a.file_name)}</option>`;
             });
         }
 

@@ -39,7 +39,7 @@
                     const tClean = cleanTimeStr(c.scheduled_time, '');
                     htmlEvents += `
                         <div class="cal-event flex items-center justify-between gap-1 group">
-                            <span onclick="editPostInComposer('${c.content_id}')" class="truncate flex-1">${tClean ? tClean + ' · ' : ''}${c.content_title}</span>
+                            <span onclick="editPostInComposer('${c.content_id}')" class="truncate flex-1">${tClean ? esc(tClean) + ' · ' : ''}${esc(c.content_title)}</span>
                             <button type="button" onclick="event.stopPropagation(); deletePostById('${c.content_id}')" class="opacity-60 hover:opacity-100 text-red-600 font-bold px-1 cursor-pointer" title="Hapus jadwal">×</button>
                         </div>
                     `;
@@ -50,7 +50,7 @@
                         const slotClean = cleanTimeStr(slot.time_slot, '19:00');
                         const isFilled = dayContents.some(c => cleanTimeStr(c.scheduled_time, '') === slotClean && c.brand_name === slot.brand_name);
                         if (!isFilled) {
-                            htmlEvents += `<div onclick="openComposerForSlot('${fullDate}', '${slotClean}', '${slot.brand_name}')" class="slot-pill">Slot ${slotClean}</div>`;
+                            htmlEvents += `<div onclick="openComposerForSlot('${fullDate}', '${slotClean}', '${slot.slot_id}')" class="slot-pill">Slot ${slotClean}</div>`;
                         }
                     }
                 });
