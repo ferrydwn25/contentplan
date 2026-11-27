@@ -39,7 +39,7 @@ var ALLOWED_MEDIA_MIME_TYPES = [
   'video/mp4', 'video/quicktime'
 ];
 
-/* 14 nama tab — sesuai CONFIG asli (Sheet1 di spreadsheet live bukan
+/* 16 nama tab — sesuai CONFIG asli (Sheet1 di spreadsheet live bukan
  * bagian dari CONFIG ini; jangan hapus Sheet1 tanpa cek Ferry). */
 var SHEET_NAMES = {
   settings: 'SETTINGS',
@@ -55,7 +55,9 @@ var SHEET_NAMES = {
   scheduleSlots: 'SCHEDULE_SLOTS',
   brandContext: 'BRAND_CONTEXT',
   oauthConnections: 'OAUTH_CONNECTIONS',
-  inbox: 'UNIFIED_INBOX'
+  inbox: 'UNIFIED_INBOX',
+  users: 'USERS',
+  sessions: 'SESSIONS'
 };
 
 /**
@@ -81,7 +83,9 @@ var SHEET_HEADERS = {
   IMPORT_LOG: ['imported_at', 'source', 'rows_imported', 'status', 'notes'], /* TODO VERIFIKASI */
   ACTIVITY_LOG: ['timestamp', 'action', 'detail', 'actor'], /* TODO VERIFIKASI */
   NOTIFICATIONS: ['notification_id', 'brand_name', 'message', 'is_read', 'created_at'], /* TODO VERIFIKASI */
-  UNIFIED_INBOX: ['msg_id', 'brand_name', 'platform', 'post_id', 'post_title', 'sender_username', 'comment_text', 'received_at', 'status', 'reply_text'] /* TODO VERIFIKASI */
+  UNIFIED_INBOX: ['msg_id', 'brand_name', 'platform', 'post_id', 'post_title', 'sender_username', 'comment_text', 'received_at', 'status', 'reply_text'], /* TODO VERIFIKASI */
+  USERS: ['user_id', 'username', 'password_hash', 'salt', 'role', 'is_active', 'created_at', 'updated_at'],
+  SESSIONS: ['session_id', 'user_id', 'username', 'expires_at', 'created_at']
 };
 
 /* ------------------------- konfigurasi & secret ------------------------- */

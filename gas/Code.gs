@@ -76,7 +76,13 @@ function jsonResponse(obj) {
 function doGet(e) {
   try {
     var p = (e && e.parameter) || {};
-    if (!validateSecret(p.secret)) {
+    /* Login: panggilan dari frontend yang sudah login boleh memakai
+     * session_token sebagai pengganti secret GAS. Panggilan
+     * server-ke-server (gas-proxy dengan GAS_API_SECRET, social-sync,
+     * cron) tetap memakai secret seperti semula — jalur itu TIDAK
+     * dihapus dan TIDAK diubah. */
+    var session = p.session_token ? authValidateSession(p.session_token) : { valid: false };
+    if (!validateSecret(p.secret) && !session.valid) {
       return jsonResponse({ success: false, error: 'Unauthorized: secret tidak cocok.' });
     }
     var action = String(p.api || p.action || 'get_full_vercel_bootstrap_data');
@@ -123,10 +129,19 @@ function doGet(e) {
 function doPost(e) {
   try {
     var body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-    if (!validateSecret(body.secret)) {
+    var action = String(body.action || '');
+    /* Aksi auth publik: TIDAK butuh secret GAS, karena tujuannya justru
+     * mendapatkan sesi. Ketiga aksi ini rate-limited (login) atau
+     * tidak mengembalikan data sensitif (logout / validate_session).
+     * Semua aksi lain tetap butuh secret ATAU session_token yang valid. */
+    if (action === 'login' || action === 'logout' || action === 'validate_session') {
+      var authResult = routePostAction_(action, body);
+      return jsonResponse(authResult);
+    }
+    var session = body.session_token ? authValidateSession(body.session_token) : { valid: false };
+    if (!validateSecret(body.secret) && !session.valid) {
       return jsonResponse({ success: false, error: 'Unauthorized: secret tidak cocok.' });
     }
-    var action = String(body.action || '');
     var result = routePostAction_(action, body);
     try { logActivity(action, result && result.success ? 'ok' : ('gagal: ' + (result.error || ''))); } catch (ignore) {}
     return jsonResponse(result);
@@ -139,6 +154,10 @@ function doPost(e) {
 /* Aksi ASLI (dari ringkasan) + alias Vercel (TODO VERIFIKASI). */
 function routePostAction_(action, body) {
   switch (action) {
+    /* --- aksi auth (tanpa secret; lihat Edit 2 di doPost) --- */
+    case 'login': return authLogin(body);
+    case 'logout': return authLogout(body);
+    case 'validate_session': return authValidateSessionAction(body);
     /* --- aksi asli --- */
     case 'create': return handleCreateData(body.sheet || body.tab || '', body.payload || body.data || {});
     case 'update': return handleUpdateData(body.sheet || body.tab || '', body.id || '', body.payload || body.data || {});

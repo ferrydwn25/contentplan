@@ -28,12 +28,12 @@
  * ============================================================================
  */
 
-/* 14 tab yang dibuat setup — sesuai CONFIG asli. */
+/* 16 tab yang dibuat setup — sesuai CONFIG asli. */
 var SETUP_SHEET_NAMES = [
   'SETTINGS', 'ACCOUNTS', 'CONTENTS', 'CONTENT_METRICS',
   'ACCOUNT_METRICS', 'CAMPAIGNS', 'MEDIA_LIBRARY', 'IMPORT_LOG',
   'ACTIVITY_LOG', 'NOTIFICATIONS', 'SCHEDULE_SLOTS', 'BRAND_CONTEXT',
-  'OAUTH_CONNECTIONS', 'UNIFIED_INBOX'
+  'OAUTH_CONNECTIONS', 'UNIFIED_INBOX', 'USERS', 'SESSIONS'
 ];
 
 function setupContentPlan() {
@@ -41,7 +41,7 @@ function setupContentPlan() {
     createSheetIfNotExists(name, getSheetHeaders_(name));
   });
   seedDefaultData();
-  return { success: true, message: 'Setup selesai: 14 tab dipastikan ada.' };
+  return { success: true, message: 'Setup selesai: 16 tab dipastikan ada.' };
 }
 
 function createSheetIfNotExists(name, headers) {
@@ -110,7 +110,7 @@ function seedDefaultData() {
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('ContentPlan')
-    .addItem('Setup awal (buat 14 tab)', 'setupContentPlan')
+    .addItem('Setup awal (buat 16 tab)', 'setupContentPlan')
     .addItem('Isi data contoh (bila kosong)', 'seedDefaultData')
     .addToUi();
 }
