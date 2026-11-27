@@ -31,19 +31,34 @@
 
         async function fetchLivePlatformFeeds(showNotif = true) {
             const btn = document.getElementById('btn-sync-feeds');
+            const cacheKey = `${state.activeBrand}|${state.feedPlatform}`;
+            /* Cache 5 menit: bootstrap/ganti brand tidak memanggil API
+             * platform berkali-kali. Tombol "Tarik" (showNotif=true) selalu
+             * memaksa refresh. */
+            if (!showNotif) {
+                const cached = getLiveCache('feeds', cacheKey);
+                if (cached) { state.liveFeeds = cached; renderFeedsView(); return; }
+            }
+            /* Abort fetch sebelumnya yang masih berjalan (mis. ganti
+             * platform/brand cepat-cepat) supaya respons basi tidak
+             * menimpa data terbaru. */
+            if (_feedsAbort) _feedsAbort.abort();
+            _feedsAbort = new AbortController();
             if (btn) { btn.innerText = "Menarik Feeds..."; btn.disabled = true; }
 
             try {
-                const res = await fetch(`/api/social-sync?mode=feeds&brand=${encodeURIComponent(state.activeBrand)}&platform=${encodeURIComponent(state.feedPlatform)}`);
+                const res = await fetch(`/api/social-sync?mode=feeds&brand=${encodeURIComponent(state.activeBrand)}&platform=${encodeURIComponent(state.feedPlatform)}`, { signal: _feedsAbort.signal });
                 const json = await safeJsonResponse(res);
                 if (json.success) {
                     state.liveFeeds = json.posts || [];
+                    setLiveCache('feeds', cacheKey, state.liveFeeds);
                     renderFeedsView();
                     if (showNotif) showToast(`Berhasil menarik ${state.liveFeeds.length} post dari ${state.feedPlatform}!`);
                 } else if (showNotif) {
                     showToast("Gagal menarik feeds: " + (json.error || "Cek koneksi OAuth"), true);
                 }
             } catch (e) {
+                if (e && e.name === 'AbortError') return; /* digantikan fetch baru */
                 if (showNotif) showToast("Error koneksi API: " + e.message, true);
             } finally {
                 if (btn) { btn.innerHTML = `<i class="ph ph-cloud-arrow-down"></i> Tarik Feeds API`; btn.disabled = false; }

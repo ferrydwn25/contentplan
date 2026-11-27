@@ -25,6 +25,26 @@
         };
         let anChartInstance = null;
 
+        /* Cache data live (feeds/analytics) per brand+platform + TTL 5 menit,
+         * supaya bootstrapApp/ganti brand tidak memanggil API platform
+         * berkali-kali. Tombol "Tarik" memaksa refresh (showNotif=true). */
+        const LIVE_CACHE_TTL_MS = 5 * 60 * 1000;
+        let _liveCache = { feeds: {}, analytics: {} };
+        let _feedsAbort = null;
+        let _analyticsAbort = null;
+
+        function getLiveCache(kind, key) {
+            const entry = _liveCache[kind] && _liveCache[kind][key];
+            if (!entry) return null;
+            if (Date.now() - entry.at > LIVE_CACHE_TTL_MS) { delete _liveCache[kind][key]; return null; }
+            return entry.data;
+        }
+
+        function setLiveCache(kind, key, data) {
+            if (!_liveCache[kind]) _liveCache[kind] = {};
+            _liveCache[kind][key] = { data, at: Date.now() };
+        }
+
         async function safeJsonResponse(res) {
             const txt = await res.text();
             try {
@@ -179,6 +199,9 @@
                 analytics: 'Analitik', assets: 'Aset', brandcontext: 'Learning & Brand DNA', settings: 'Pengaturan'
             };
             document.getElementById('header-title').innerText = titles[viewName] || viewName;
+            /* View di-render saat dibuka (lazy) — supaya refreshAllViews()
+             * tidak perlu me-render semua view yang tersembunyi. */
+            renderActiveView();
             if (window.innerWidth < 768 && !document.getElementById('sidebar').classList.contains('-translate-x-full')) {
                 toggleMenu();
             }
@@ -222,18 +245,40 @@
             return state.activeBrand === 'ALL' ? state.contents : state.contents.filter(c => c.brand_name === state.activeBrand);
         }
 
+        /* Render per view — dipakai refreshAllViews() + navigate(). */
+        const VIEW_RENDERERS = {
+            calendar: () => renderCalendar(),
+            feeds: () => renderFeedsView(),
+            swipe: () => updateSwipeDNAIndicator(),
+            composer: () => { renderComposerQueue(); updateLivePreview(); },
+            inbox: () => renderUnifiedInbox(),
+            analytics: () => renderAnalyticsDashboard(),
+            assets: () => renderAssetsGallery(),
+            brandcontext: () => renderBrandContextCards(),
+            settings: () => { renderSlotMatrix(); renderSettingsOAuthCards(); }
+        };
+
+        function getActiveView() {
+            for (const v of ALL_VIEWS) {
+                const el = document.getElementById('view-' + v);
+                if (el && !el.classList.contains('hidden')) return v;
+            }
+            return 'calendar';
+        }
+
+        function renderActiveView() {
+            const fn = VIEW_RENDERERS[getActiveView()];
+            if (!fn) return;
+            try { fn(); } catch (e) { console.error('render view gagal:', e); }
+        }
+
+        /* Dulu refreshAllViews() me-render SEMUA 9 view di setiap bootstrap
+         * dan ganti brand — termasuk 8 view yang sedang hidden. Sekarang
+         * hanya view yang sedang tampil + sidebar OAuth + badge inbox;
+         * view lain di-render saat dibuka lewat navigate(). */
         function refreshAllViews() {
-            renderCalendar();
-            renderFeedsView();
-            renderComposerQueue();
-            renderSidebarOAuth();
-            renderSettingsOAuthCards();
-            renderUnifiedInbox();
-            renderSlotMatrix();
-            renderBrandContextCards();
-            renderAssetsGallery();
-            renderAnalyticsDashboard();
-            updateLivePreview();
-            updateSwipeDNAIndicator();
+            renderActiveView();
+            try { renderSidebarOAuth(); } catch (e) { console.error('render sidebar gagal:', e); }
+            try { updateInboxBadge(); } catch (e) { console.error('update badge gagal:', e); }
         }
 

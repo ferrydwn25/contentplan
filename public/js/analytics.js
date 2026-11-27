@@ -7,19 +7,29 @@
         // =========================================================================
         async function fetchLiveAnalytics(showNotif = true) {
             const btn = document.getElementById('btn-sync-analytics');
+            const cacheKey = `${state.activeBrand}`;
+            /* Cache 5 menit + abort fetch sebelumnya — sama seperti feeds. */
+            if (!showNotif) {
+                const cached = getLiveCache('analytics', cacheKey);
+                if (cached) { state.liveAnalytics = cached; renderAnalyticsDashboard(); return; }
+            }
+            if (_analyticsAbort) _analyticsAbort.abort();
+            _analyticsAbort = new AbortController();
             if (btn) { btn.innerText = "Menarik Data API..."; btn.disabled = true; }
 
             try {
-                const res = await fetch(`/api/social-sync?mode=analytics&brand=${encodeURIComponent(state.activeBrand)}`);
+                const res = await fetch(`/api/social-sync?mode=analytics&brand=${encodeURIComponent(state.activeBrand)}`, { signal: _analyticsAbort.signal });
                 const json = await safeJsonResponse(res);
                 if (json.success) {
                     state.liveAnalytics = json.summary;
+                    setLiveCache('analytics', cacheKey, state.liveAnalytics);
                     renderAnalyticsDashboard();
                     if (showNotif) showToast("Data analitik & retensi berhasil diperbarui dari API!");
                 } else if (showNotif) {
                     showToast("Gagal menarik analitik: " + (json.error || "Error"), true);
                 }
             } catch (e) {
+                if (e && e.name === 'AbortError') return; /* digantikan fetch baru */
                 if (showNotif) showToast("Error API Analitik: " + e.message, true);
             } finally {
                 if (btn) { btn.innerHTML = `<i class="ph ph-chart-line-up"></i> Tarik Data API Terbaru`; btn.disabled = false; }

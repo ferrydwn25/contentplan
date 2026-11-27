@@ -38,23 +38,27 @@
             renderUnifiedInbox();
         }
 
-        function renderUnifiedInbox() {
-            const container = document.getElementById('inbox-list-container');
+        /* Hanya perbarui angka badge di sidebar — dipakai refreshAllViews()
+         * supaya daftar inbox tidak di-render ulang saat view-nya tersembunyi. */
+        function updateInboxBadge() {
             const badge = document.getElementById('inbox-badge');
-            if (!container) return;
-
+            if (!badge) return;
             const brandFiltered = state.activeBrand === 'ALL' ? state.inbox : state.inbox.filter(m => m.brand_name === state.activeBrand);
             const unrepliedCount = brandFiltered.filter(m => m.status === 'Unreplied').length;
-
-            if (badge) {
-                if (unrepliedCount > 0) {
-                    badge.innerText = unrepliedCount;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
+            if (unrepliedCount > 0) {
+                badge.innerText = unrepliedCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
             }
+        }
 
+        function renderUnifiedInbox() {
+            const container = document.getElementById('inbox-list-container');
+            if (!container) return;
+
+            updateInboxBadge();
+            const brandFiltered = state.activeBrand === 'ALL' ? state.inbox : state.inbox.filter(m => m.brand_name === state.activeBrand);
             const list = brandFiltered.filter(m => m.status === state.inboxFilter);
             container.innerHTML = '';
 
