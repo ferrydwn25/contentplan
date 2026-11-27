@@ -159,6 +159,13 @@
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <div class="bg-white border border-gray-200 rounded-full p-1 flex gap-1 shadow-sm">
+                            <button type="button" onclick="setFeedMode('grid')" id="feed-mode-grid" class="bg-gray-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer">▦ Grid</button>
+                            <button type="button" onclick="setFeedMode('phone')" id="feed-mode-phone" class="text-gray-600 hover:bg-gray-100 px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer">📱 HP</button>
+                        </div>
+                        <button type="button" onclick="toggleFeedReorder()" id="btn-feed-reorder" class="apple-btn-secondary px-4 py-2 text-xs hidden">
+                            <i class="ph ph-arrows-down-up"></i> Mode susun
+                        </button>
+                        <div class="bg-white border border-gray-200 rounded-full p-1 flex gap-1 shadow-sm">
                             <button type="button" onclick="setFeedPlatform('Instagram')" id="feed-tab-Instagram" class="bg-gray-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer">Instagram</button>
                             <button type="button" onclick="setFeedPlatform('TikTok')" id="feed-tab-TikTok" class="text-gray-600 hover:bg-gray-100 px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer">TikTok</button>
                             <button type="button" onclick="setFeedPlatform('YouTube')" id="feed-tab-YouTube" class="text-gray-600 hover:bg-gray-100 px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer">YouTube</button>
@@ -179,6 +186,7 @@
                                 <span id="feed-conn-badge" class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full">Belum Terhubung</span>
                             </div>
                             <p class="text-xs text-gray-500 mt-0.5" id="feed-profile-bio">Menampilkan antrean terjadwal (Kalender) + postingan live dari API.</p>
+                            <p class="text-[11px] text-gray-400 font-semibold mt-0.5" id="feed-profile-stats"></p>
                         </div>
                     </div>
                     <button type="button" onclick="openNewComposerPostForFeed()" class="bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
@@ -187,6 +195,28 @@
                 </div>
 
                 <div id="feeds-grid-container" class="grid grid-cols-3 gap-2 md:gap-4"></div>
+
+                <!-- MODE SIMULASI HP: panel urutan + frame HP + inspector (panel hanya di desktop) -->
+                <div id="feeds-phone-studio" class="hidden lg:grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-5 items-start">
+                    <aside class="apple-card p-4 space-y-2 sticky top-24 hidden lg:block">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-extrabold text-sm text-gray-900">Urutan antrean</h4>
+                            <button type="button" onclick="resetFeedOrder()" class="text-[11px] font-bold text-blue-600 hover:underline cursor-pointer">Reset</button>
+                        </div>
+                        <p class="text-[11px] text-gray-400 leading-relaxed">Seret kartu (desktop) atau pakai ↑/↓ dalam Mode susun. Urutan hanya tersimpan di tab ini — backend persistensi (P2) belum tersedia.</p>
+                        <div id="feed-order-list" class="space-y-1.5"></div>
+                    </aside>
+                    <div class="flex justify-center">
+                        <div class="phone-mockup-feed">
+                            <div class="phone-notch"></div>
+                            <div id="phone-screen" class="phone-screen"></div>
+                        </div>
+                    </div>
+                    <aside class="apple-card p-4 space-y-3 sticky top-24 hidden lg:block">
+                        <h4 class="font-extrabold text-sm text-gray-900">Detail post</h4>
+                        <div id="feed-inspector-body"></div>
+                    </aside>
+                </div>
             </div>
 
             <!-- 3. VIEW: SWIPE (BATCH GENERATOR) -->
