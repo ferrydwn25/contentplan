@@ -12,6 +12,13 @@
             renderCalendar();
         }
 
+        function goToToday() {
+            const now = new Date();
+            state.calYear = now.getFullYear();
+            state.calMonth = now.getMonth();
+            renderCalendar();
+        }
+
         function renderCalendar() {
             const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
             document.getElementById('cal-month-label').innerText = `${monthNames[state.calMonth]} ${state.calYear}`;
@@ -26,6 +33,8 @@
 
             const filteredContents = getFilteredContents();
             const activeSlots = state.activeBrand === 'ALL' ? state.slots : state.slots.filter(s => s.brand_name === state.activeBrand);
+            const todayStr = localDateStr(new Date());
+            const statusCls = { 'Ready': 'cal-event-ready', 'Idea': 'cal-event-idea', 'Draft': 'cal-event-idea', 'Published': 'cal-event-published' };
 
             for (let i = 0; i < startOffset; i++) grid.innerHTML += `<div class="cal-cell bg-gray-50/50"></div>`;
 
@@ -33,12 +42,13 @@
                 const fullDate = `${state.calYear}-${String(state.calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayKey = dayKeys[(startOffset + day - 1) % 7];
                 const dayContents = filteredContents.filter(c => String(c.scheduled_date).startsWith(fullDate));
+                const isToday = fullDate === todayStr;
                 let htmlEvents = '';
 
                 dayContents.forEach(c => {
                     const tClean = cleanTimeStr(c.scheduled_time, '');
                     htmlEvents += `
-                        <div class="cal-event flex items-center justify-between gap-1 group">
+                        <div class="cal-event ${statusCls[c.content_status] || ''} flex items-center justify-between gap-1 group">
                             <span onclick="editPostInComposer('${c.content_id}')" class="truncate flex-1">${tClean ? esc(tClean) + ' · ' : ''}${esc(c.content_title)}</span>
                             <button type="button" onclick="event.stopPropagation(); deletePostById('${c.content_id}')" class="opacity-60 hover:opacity-100 text-red-600 font-bold px-1 cursor-pointer" title="Hapus jadwal">×</button>
                         </div>
@@ -55,7 +65,7 @@
                     }
                 });
 
-                grid.innerHTML += `<div class="cal-cell"><div class="text-xs font-bold text-gray-800 mb-1">${day}</div>${htmlEvents}</div>`;
+                grid.innerHTML += `<div class="cal-cell${isToday ? ' cal-today' : ''}"><div class="text-xs font-bold ${isToday ? 'text-blue-700' : 'text-gray-800'} mb-1">${day}${isToday ? ' <span class="text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded-full align-middle">Hari ini</span>' : ''}</div>${htmlEvents}</div>`;
             }
         }
 

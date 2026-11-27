@@ -4,6 +4,9 @@
 // LOGIN (2026-11-27): apiGet/apiPost mengirim session_token; bootstrap
 // hanya jalan setelah login (gate di DOMContentLoaded, lihat auth.js).
         const ALL_VIEWS = ['calendar', 'feeds', 'swipe', 'composer', 'inbox', 'analytics', 'assets', 'brandcontext', 'settings'];
+        /* Kalender membuka bulan BERJALAN (waktu lokal) — sebelumnya
+         * calYear/calMonth di-hardcode November 2026. */
+        const _nowLocal = new Date();
         let state = {
             activeBrand: 'ALL',
             brands: [],
@@ -16,8 +19,8 @@
             feedPlatform: 'Instagram',
             liveFeeds: [],
             liveAnalytics: null,
-            calYear: 2026,
-            calMonth: 10,
+            calYear: _nowLocal.getFullYear(),
+            calMonth: _nowLocal.getMonth(),
             selectedPillars: []
         };
         let anChartInstance = null;
