@@ -175,14 +175,16 @@ function routePostAction_(action, body) {
     case 'save_composer_post': {
       /* autoQueue (tombol "Jadwalkan ke Slot Berikutnya"): cari slot kosong
        * berikutnya dari SCHEDULE_SLOTS + CONTENTS, isi tanggal/jam otomatis.
-       * Tanpa ini tombol tersebut identik dengan "Simpan Jadwal Ini". */
+       * Tanpa ini tombol tersebut identik dengan "Simpan Jadwal Ini".
+       * PENTING — v11: route live v10 TIDAK memanggil adapter ini; route
+       * live masih memakai adapter saveComposerPost versi lama yang tidak
+       * membaca body.autoQueue dan tidak mengembalikan
+       * scheduled_date/scheduled_time/autoQueued (akibatnya live: toast
+       * fallback "undefined jam undefined" + post tersimpan pakai default
+       * YouTube/19:00/tanpa tanggal). Deploy v11 WAJIB mengganti case ini
+       * DAN fungsi saveComposerPost di bawah dengan versi repo ini. */
       var p = body.payload || {};
-      if (body.autoQueue) return saveComposerPostAutoQueue_(p);
-      var res;
-      if (p.content_id) res = handleUpdateData('CONTENTS', p.content_id, p);
-      else res = handleCreateData('CONTENTS', p);
-      if (!res.success) return res;
-      return { success: true, data: res.data || p, scheduled_date: p.scheduled_date, scheduled_time: p.scheduled_time, autoQueued: false };
+      return saveComposerPost(p, !!body.autoQueue);
     }
     case 'delete_post': return handleDeleteData('CONTENTS', body.contentId || body.content_id || '');
     /* P2 (DRAFT, butuh deploy GAS v10): persistensi urutan feed. */
@@ -204,6 +206,25 @@ function routePostAction_(action, body) {
     default:
       return { success: false, error: 'Action tidak dikenal: ' + action };
   }
+}
+
+/* Adapter simpan post dari composer — SATU-SATUNYA jalur save_composer_post.
+ * Dibuat di repo (v11) karena adapter saveComposerPost versi live (v10 ke
+ * bawah) TIDAK ADA di repo: adapter live tidak membaca autoQueue, tidak
+ * mengembalikan scheduled_date/scheduled_time/autoQueued di top-level, dan
+ * tidak menyimpan platform/tanggal/jam dari payload dengan benar (live:
+ * tersimpan default YouTube/19:00/tanpa tanggal padahal form TikTok 20:00).
+ * Deploy v11 WAJIB mengganti adapter live dengan fungsi ini (dan case
+ * save_composer_post di atas). Mengembalikan jadwal akhir di top-level
+ * supaya toast frontend menampilkan jadwal yang benar. */
+function saveComposerPost(payload, autoQueue) {
+  var p = payload || {};
+  if (autoQueue) return saveComposerPostAutoQueue_(p);
+  var res;
+  if (p.content_id) res = handleUpdateData('CONTENTS', p.content_id, p);
+  else res = handleCreateData('CONTENTS', p);
+  if (!res.success) return res;
+  return { success: true, data: res.data || p, scheduled_date: p.scheduled_date, scheduled_time: p.scheduled_time, autoQueued: false };
 }
 
 /* ----------------- handler GET/POST (nama asli, thin wrapper) ------------ */

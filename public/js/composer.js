@@ -70,7 +70,7 @@
             if (!contentId) return;
             const target = state.contents.find(x => x.content_id === contentId);
             const label = target ? target.content_title : contentId;
-            if (!confirm(`Hapus post "${label}"? Jadwal ini akan dihapus permanen dari Sheets.`)) return;
+            if (!await confirmDialog(`Hapus post "${label}"? Jadwal ini akan dihapus permanen dari Sheets.`)) return;
             const res = await apiPost('delete_post', { contentId });
             if (res.success) {
                 showToast("Postingan berhasil dihapus!");
@@ -164,12 +164,15 @@
                     if (res.autoQueued) {
                         showToast(`Dijadwalkan ke slot berikutnya: ${res.scheduled_date} jam ${res.scheduled_time}`);
                     } else {
-                        /* GAS lama (sebelum deploy v10) belum mengenal autoQueue:
-                         * post tersimpan di jadwal form, bukan slot berikutnya. */
-                        showToast(`Tersimpan di jadwal form — auto-queue belum aktif di GAS (perlu deploy v10). Jadwal: ${res.scheduled_date} jam ${res.scheduled_time}`, true);
+                        /* GAS lama (sebelum deploy v11) belum mengenal autoQueue:
+                         * post tersimpan di jadwal form, bukan slot berikutnya.
+                         * Pakai jadwal FORM (bukan field respons yang mungkin
+                         * tidak ada) supaya toast tidak pernah menampilkan
+                         * "undefined jam undefined". */
+                        showToast(`Tersimpan di jadwal form — auto-queue belum aktif di GAS (perlu deploy v11). Jadwal: ${payload.scheduled_date} jam ${payload.scheduled_time}`, true);
                     }
                 } else {
-                    showToast(`Tersimpan! Jadwal: ${res.scheduled_date} jam ${res.scheduled_time}`);
+                    showToast(`Tersimpan! Jadwal: ${res.scheduled_date || payload.scheduled_date} jam ${res.scheduled_time || payload.scheduled_time}`);
                 }
                 await bootstrapApp();
                 navigate('calendar');
