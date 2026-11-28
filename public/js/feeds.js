@@ -20,8 +20,25 @@
         state.feedOrders = state.feedOrders || {};      // P2: urutan tersimpan per 'brand|platform'
         state.feedSelected = null;                      // key item terpilih di inspector
 
+        /* Brand untuk kunci urutan 'brand|platform' (FEED_LAYOUT).
+         * Bila activeBrand sudah satu brand, pakai itu. Bila "All Brands",
+         * turunkan dari post terjadwal yang sedang tampil di platform ini:
+         * bila semuanya dari SATU brand, brand itulah kuncinya — ini
+         * menutup kasus brand yang ada di CONTENTS/SCHEDULE_SLOTS tapi
+         * bukan brand BRAND_CONTEXT (mis. post contoh "Bacon Files"),
+         * yang tidak bisa dipilih di pemilih ACTIVE BRAND. Bila tampil
+         * dari beberapa brand (atau tidak ada post), kembalikan null. */
+        function feedOrderBrand() {
+            if (state.activeBrand !== 'ALL') return state.activeBrand;
+            const brands = {};
+            getFeedItems().scheduled.forEach(it => { if (it.brand) brands[it.brand] = true; });
+            const keys = Object.keys(brands);
+            return keys.length === 1 ? keys[0] : null;
+        }
+
         function feedOrderKey() {
-            return state.activeBrand + '|' + state.feedPlatform;
+            const b = feedOrderBrand();
+            return (b || 'ALL') + '|' + state.feedPlatform;
         }
 
         /* Muat urutan tersimpan untuk brand+platform aktif (dari bootstrap).
@@ -42,8 +59,15 @@
          * GAS hanya menyimpan id yang valid (masih ada & belum Published) dan
          * mengembalikan ordered_ids yang benar-benar tersimpan. */
         async function saveFeedOrder() {
-            if (state.activeBrand === 'ALL') {
-                showToast('Pilih satu brand dulu untuk menyimpan urutan feed.', true);
+            const brand = feedOrderBrand();
+            if (!brand) {
+                /* Kunci 'brand|platform' FEED_LAYOUT tidak bisa
+                 * ditentukan: tidak ada post terjadwal di platform ini,
+                 * atau post yang tampil berasal dari beberapa brand. */
+                const n = getFeedItems().scheduled.length;
+                showToast(n === 0
+                    ? 'Tidak ada post terjadwal di platform ini untuk disimpan.'
+                    : 'Post yang tampil berasal dari beberapa brand — pilih satu brand dulu untuk menyimpan urutan feed.', true);
                 return;
             }
             ensureFeedOrder();
@@ -51,13 +75,13 @@
             if (btn) { btn.disabled = true; btn.innerText = 'Menyimpan…'; }
             try {
                 const res = await apiPost('save_feed_order', {
-                    brandName: state.activeBrand,
+                    brandName: brand,
                     platform: state.feedPlatform,
                     orderedIds: state.feedOrder || []
                 });
                 if (res && res.success) {
-                    state.feedOrders[feedOrderKey()] = (res.ordered_ids || state.feedOrder || []).map(String);
-                    showToast('Urutan feed tersimpan untuk ' + state.activeBrand + ' / ' + state.feedPlatform + '.');
+                    state.feedOrders[brand + '|' + state.feedPlatform] = (res.ordered_ids || state.feedOrder || []).map(String);
+                    showToast('Urutan feed tersimpan untuk ' + brand + ' / ' + state.feedPlatform + '.');
                 } else {
                     showToast('Gagal menyimpan urutan: ' + ((res && res.error) || 'cek koneksi'), true);
                 }
