@@ -368,7 +368,6 @@ export default async function handler(req, res) {
         if (!conn.access_token) return;
         const token = await ensureFreshToken(conn, GAS_URL, API_SECRET);
         const p = conn.platform;
-        if (summary.byPlatform[p]) summary.byPlatform[p].connected = true;
 
         try {
           if (p === "YouTube") {
@@ -389,6 +388,9 @@ export default async function handler(req, res) {
               apiWarnings.push(`YouTube (${conn.username}): Channel tidak ditemukan pada akun Google ini. Pastikan memilih Brand Account channel saat login OAuth.`);
               return;
             }
+
+            // Badge "API Live" hanya setelah API YouTube menjawab sukses.
+            summary.byPlatform.YouTube.connected = true;
 
             const subs = parseInt(channelItem.statistics?.subscriberCount || 0);
             const chTotalViews = parseInt(channelItem.statistics?.viewCount || 0);
@@ -470,6 +472,9 @@ export default async function handler(req, res) {
               return;
             }
 
+            // Badge "API Live" hanya setelah API Instagram menjawab sukses.
+            summary.byPlatform.Instagram.connected = true;
+
             const foll = parseInt(profJson.followers_count || 0);
             summary.totalFollowers += foll;
             summary.byPlatform.Instagram.followers += foll;
@@ -538,6 +543,10 @@ export default async function handler(req, res) {
               apiWarnings.push(`TikTok (${conn.username}): ${uJson.error.message} — Klik tombol × lalu Hubungkan ulang TikTok untuk izin user.info.stats & video.list.`);
               return;
             }
+
+            // Badge "API Live" hanya setelah API TikTok menjawab sukses.
+            summary.byPlatform.TikTok.connected = true;
+
             const userData = uJson.data?.user || {};
             if (userData.follower_count === undefined) {
               apiWarnings.push(`TikTok (${conn.username}): Token lama belum memiliki izin 'user.info.stats'. Silakan klik × di sidebar lalu klik Hubungkan TikTok ulang.`);
@@ -589,6 +598,10 @@ export default async function handler(req, res) {
               apiWarnings.push(`Threads (${conn.username}): ${thJson.error.message}`);
               return;
             }
+
+            // Badge "API Live" hanya setelah API Threads menjawab sukses.
+            summary.byPlatform.Threads.connected = true;
+
             (thJson.data || []).forEach(m => {
               const val = parseInt(m.total_value?.value || m.values?.[0]?.value || 0);
               if (m.name === "followers_count") {
