@@ -175,6 +175,15 @@
                     showToast(`Tersimpan! Jadwal: ${res.scheduled_date || payload.scheduled_date} jam ${res.scheduled_time || payload.scheduled_time}`);
                 }
                 await bootstrapApp();
+                /* Reset form ke post baru: tanpa ini, bootstrapApp() di
+                 * atas membangun ulang dropdown brand
+                 * (populateBrandDropdowns) sehingga comp-brand kembali
+                 * ke opsi pertama ("Roblox | Story") sementara
+                 * judul/caption/tanggal/jam masih berisi post yang baru
+                 * disimpan — form menampilkan brand yang salah dan
+                 * simpan ulang akan menduplikasi post dengan brand
+                 * yang salah. */
+                openNewComposerPost();
                 navigate('calendar');
             } else {
                 showToast("Gagal menyimpan: " + (res.error || "Error"), true);
