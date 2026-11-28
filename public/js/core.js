@@ -16,6 +16,7 @@
             connections: [],
             inbox: [],
             inboxFilter: 'Unreplied',
+            feedOrders: {},               // P2: { 'brand|platform': [content_id...] } dari bootstrap
             feedPlatform: 'Instagram',
             liveFeeds: [],
             liveAnalytics: null,
@@ -199,6 +200,15 @@
             state.assets = res.assets || [];
             state.connections = res.connections || [];
             state.inbox = res.inbox || [];
+            /* P2: urutan feed tersimpan (FEED_LAYOUT) — ordered_ids bisa
+             * string JSON atau array; kunci per brand+platform. */
+            state.feedOrders = {};
+            (res.feedOrders || []).forEach(r => {
+                let ids = [];
+                try { ids = typeof r.ordered_ids === 'string' ? JSON.parse(r.ordered_ids || '[]') : (r.ordered_ids || []); } catch (e) { ids = []; }
+                if (Array.isArray(ids) && ids.length > 0) state.feedOrders[r.brand_name + '|' + r.platform] = ids.map(String);
+            });
+            if (typeof applyFeedOrder === 'function') applyFeedOrder();
 
             populateBrandDropdowns();
             populateComposerAssetDropdown();
@@ -262,6 +272,8 @@
                     if (el) el.value = state.activeBrand;
                 });
             }
+            /* P2: ganti brand = ganti urutan tersimpan yang berlaku. */
+            if (typeof applyFeedOrder === 'function') applyFeedOrder();
             refreshAllViews();
             if (state.connections.length > 0) {
                 fetchLivePlatformFeeds(false);

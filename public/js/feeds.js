@@ -4,8 +4,11 @@
 // P1: simulasi HP per platform (chrome TikTok/Shorts, Instagram, Threads),
 //     bisa di-scroll (scroll-snap) dan ditata ulang (drag-and-drop + tombol
 //     naik/turun) untuk post TERJADWAL saja. Post live terkunci ("Sudah tayang").
-// P1: urutan hanya bertahan di memori tab (state.feedOrder). Persistensi ke
-//     backend adalah P2 (tab FEED_LAYOUT + aksi GAS) — belum tersedia.
+// P2: urutan tersimpan di FEED_LAYOUT (GAS v10+, via bootstrap feedOrders
+// + aksi save_feed_order). state.feedOrders = { 'brand|platform': [id...] };
+// state.feedOrder = urutan aktif untuk brand+platform saat ini (null =
+// default kronologis). Ganti brand/platform memuat ulang urutan tersimpan
+// brand+platform itu — jadi urutan satu platform tidak bocor ke platform lain.
 // Script klasik (bukan ES module) supaya fungsi global tetap bisa dipanggil
 // inline onclick di index.html.
         // =========================================================================
@@ -14,7 +17,56 @@
         state.feedMode = state.feedMode || 'grid';      // 'grid' | 'phone'
         state.feedReorder = false;                      // mode susun aktif?
         state.feedOrder = null;                         // array content_id terjadwal (null = default kronologis)
+        state.feedOrders = state.feedOrders || {};      // P2: urutan tersimpan per 'brand|platform'
         state.feedSelected = null;                      // key item terpilih di inspector
+
+        function feedOrderKey() {
+            return state.activeBrand + '|' + state.feedPlatform;
+        }
+
+        /* Muat urutan tersimpan untuk brand+platform aktif (dari bootstrap).
+         * Hanya id yang masih ada & belum Published yang dipakai; kalau tidak
+         * ada urutan tersimpan, kembali ke kronologis (null). Dipanggil saat
+         * bootstrap, ganti brand, dan ganti platform. */
+        function applyFeedOrder() {
+            const saved = (state.feedOrders || {})[feedOrderKey()];
+            if (!saved || saved.length === 0) { state.feedOrder = null; return; }
+            const ids = getFilteredContents()
+                .filter(c => c.platform === state.feedPlatform && c.content_status !== 'Published')
+                .map(c => String(c.content_id));
+            const kept = saved.map(String).filter(id => ids.indexOf(id) !== -1);
+            state.feedOrder = kept.length > 0 ? kept : null;
+        }
+
+        /* Simpan urutan saat ini ke Sheets (FEED_LAYOUT) via gas-proxy.
+         * GAS hanya menyimpan id yang valid (masih ada & belum Published) dan
+         * mengembalikan ordered_ids yang benar-benar tersimpan. */
+        async function saveFeedOrder() {
+            if (state.activeBrand === 'ALL') {
+                showToast('Pilih satu brand dulu untuk menyimpan urutan feed.', true);
+                return;
+            }
+            ensureFeedOrder();
+            const btn = document.getElementById('btn-save-feed-order');
+            if (btn) { btn.disabled = true; btn.innerText = 'Menyimpan…'; }
+            try {
+                const res = await apiPost('save_feed_order', {
+                    brandName: state.activeBrand,
+                    platform: state.feedPlatform,
+                    orderedIds: state.feedOrder || []
+                });
+                if (res && res.success) {
+                    state.feedOrders[feedOrderKey()] = (res.ordered_ids || state.feedOrder || []).map(String);
+                    showToast('Urutan feed tersimpan untuk ' + state.activeBrand + ' / ' + state.feedPlatform + '.');
+                } else {
+                    showToast('Gagal menyimpan urutan: ' + ((res && res.error) || 'cek koneksi'), true);
+                }
+            } catch (e) {
+                showToast('Gagal menyimpan urutan: ' + e.message, true);
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Simpan urutan'; }
+            }
+        }
 
         function setFeedPlatform(plat) {
             state.feedPlatform = plat;
@@ -25,6 +77,8 @@
                     ? 'bg-gray-900 text-white px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer'
                     : 'text-gray-600 hover:bg-gray-100 px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer';
             });
+            /* P2: ganti platform = muat urutan tersimpan platform itu. */
+            applyFeedOrder();
             renderFeedsView();
             fetchLivePlatformFeeds(false);
         }
