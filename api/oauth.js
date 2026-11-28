@@ -93,7 +93,7 @@ export default async function handler(req, res) {
       const clientId = process.env.GOOGLE_CLIENT_ID;
       if (!clientId) return redirectError(res, "GOOGLE_CLIENT_ID_belum_diset");
       const scope = encodeURIComponent("https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/youtube.readonly");
-      return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(DEFAULT_REDIRECT_URI)}&scope=${scope}&access_type=offline&prompt=consent&state=${state}`);
+      return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(DEFAULT_REDIRECT_URI)}&response_type=code&scope=${scope}&access_type=offline&prompt=consent&state=${state}`);
     }
   }
 
