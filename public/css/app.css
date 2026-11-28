@@ -67,6 +67,9 @@
         #app-header { padding-top: max(0.875rem, env(safe-area-inset-top)); }
 
         .phone-mockup { width: 295px; height: 530px; border: 10px solid #1F2937; border-radius: 36px; background: #000; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.16); margin: 0 auto; }
+        /* Preview composer: mode Threads berlatar putih (timeline teks),
+         * bukan hitam seperti preview video (TikTok/Shorts/Reels). */
+        .phone-mockup.prev-threads-mode { background: #fff; }
         .phone-notch { width: 105px; height: 18px; background: #1F2937; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 20; }
 
         /* Phone Feed Studio — Feeds & Grid P0+P1 (2026-11-27). */

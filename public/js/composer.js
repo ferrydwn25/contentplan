@@ -92,10 +92,73 @@
             const title = document.getElementById('comp-title').value || "Judul / Hook konten...";
             const caption = document.getElementById('comp-caption').value || "Caption postingan...";
             const imgUrl = document.getElementById('comp-thumb-url').value.trim();
+            const username = "@" + brand.replace(/\s+/g, '');
+            const initial = brand.charAt(0).toUpperCase();
 
-            document.getElementById('prev-platform-badge').innerText = platform;
-            document.getElementById('prev-avatar').innerText = brand.charAt(0).toUpperCase();
-            document.getElementById('prev-username').innerText = "@" + brand.replace(/\s+/g, '');
+            const phone = document.getElementById('prev-phone');
+            const videoEl = document.getElementById('prev-video');
+            const threadsEl = document.getElementById('prev-threads');
+
+            if (platform === 'Threads') {
+                /* Threads = timeline teks dulu, bukan video fullscreen:
+                 * latar putih, avatar + username + waktu, judul + caption
+                 * sebagai isi post; media hanya lampiran kecil bila ada.
+                 * Mengikuti chrome Threads di feeds.js (phone sim). */
+                if (phone) phone.classList.add('prev-threads-mode');
+                if (videoEl) videoEl.classList.add('hidden');
+                if (threadsEl) { threadsEl.classList.remove('hidden'); threadsEl.classList.add('flex'); }
+                document.getElementById('prev-th-avatar').innerText = initial;
+                document.getElementById('prev-th-username').innerText = username;
+                document.getElementById('prev-th-time').innerText = document.getElementById('comp-date').value || 'Sekarang';
+                document.getElementById('prev-th-title').innerText = title;
+                document.getElementById('prev-th-caption').innerText = caption;
+                const thImg = document.getElementById('prev-th-img');
+                if (imgUrl) { thImg.src = imgUrl; thImg.classList.remove('hidden'); }
+                else { thImg.classList.add('hidden'); thImg.removeAttribute('src'); }
+                return;
+            }
+
+            /* TikTok / YouTube Shorts / Instagram Reels: video fullscreen.
+             * Ketiganya dibedakan: TikTok = tab "Mengikuti | Untuk Anda" +
+             * rail ♥/💬/Share; YouTube Shorts = badge merah "▶ Shorts" +
+             * rail 👍/👎/💬/Share + tombol Subscribe; Instagram Reels =
+             * badge gradien + rail ♥/💬/Kirim + bottom nav Reels. */
+            if (phone) phone.classList.remove('prev-threads-mode');
+            if (threadsEl) { threadsEl.classList.add('hidden'); threadsEl.classList.remove('flex'); }
+            if (videoEl) videoEl.classList.remove('hidden');
+
+            const badge = document.getElementById('prev-platform-badge');
+            const tabs = document.getElementById('prev-tiktok-tabs');
+            const subscribe = document.getElementById('prev-subscribe');
+            const reelsNav = document.getElementById('prev-reels-nav');
+            const rail = document.getElementById('prev-rail');
+            const badgeBase = 'px-2.5 py-1 rounded-full';
+            if (platform === 'TikTok') {
+                badge.innerText = 'TikTok';
+                badge.className = badgeBase + ' bg-black/60 backdrop-blur-md';
+                tabs.classList.remove('hidden');
+                subscribe.classList.add('hidden');
+                reelsNav.classList.add('hidden'); reelsNav.classList.remove('flex');
+                rail.innerHTML = '<div><i class="ph-fill ph-heart text-2xl"></i><span class="text-[10px] block">12K</span></div><div><i class="ph-fill ph-chat-circle-dots text-2xl"></i><span class="text-[10px] block">342</span></div><div><i class="ph-fill ph-share-fat text-2xl"></i><span class="text-[10px] block">Share</span></div>';
+            } else if (platform === 'Instagram') {
+                badge.innerText = 'Instagram Reels';
+                badge.className = badgeBase + ' bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400';
+                tabs.classList.add('hidden');
+                subscribe.classList.add('hidden');
+                reelsNav.classList.remove('hidden'); reelsNav.classList.add('flex');
+                document.getElementById('prev-reels-avatar').innerText = initial;
+                rail.innerHTML = '<div><i class="ph-fill ph-heart text-2xl"></i><span class="text-[10px] block">12K</span></div><div><i class="ph-fill ph-chat-circle-dots text-2xl"></i><span class="text-[10px] block">342</span></div><div><i class="ph-fill ph-paper-plane-tilt text-2xl"></i><span class="text-[10px] block">Kirim</span></div>';
+            } else { /* YouTube (default) */
+                badge.innerText = '▶ Shorts';
+                badge.className = badgeBase + ' bg-red-600';
+                tabs.classList.add('hidden');
+                subscribe.classList.remove('hidden');
+                reelsNav.classList.add('hidden'); reelsNav.classList.remove('flex');
+                rail.innerHTML = '<div><i class="ph-fill ph-thumbs-up text-2xl"></i><span class="text-[10px] block">12K</span></div><div><i class="ph-fill ph-thumbs-down text-2xl"></i><span class="text-[10px] block">Dislike</span></div><div><i class="ph-fill ph-chat-circle-dots text-2xl"></i><span class="text-[10px] block">342</span></div><div><i class="ph-fill ph-share-fat text-2xl"></i><span class="text-[10px] block">Share</span></div>';
+            }
+
+            document.getElementById('prev-avatar').innerText = initial;
+            document.getElementById('prev-username').innerText = username;
             document.getElementById('prev-title').innerText = title;
             document.getElementById('prev-caption').innerText = caption;
 
