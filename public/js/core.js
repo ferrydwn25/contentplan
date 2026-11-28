@@ -237,6 +237,12 @@
                 analytics: 'Analitik', assets: 'Aset', brandcontext: 'Learning & Brand DNA', settings: 'Pengaturan'
             };
             document.getElementById('header-title').innerText = titles[viewName] || viewName;
+            /* Pindah view: kembalikan scroll kontainer ke atas. Tanpa ini,
+             * posisi scroll view sebelumnya terbawa — view baru terbuka dalam
+             * keadaan sudah tergulir ke bawah sehingga bagian atasnya
+             * terpotong (paling terasa di HP). */
+            const appContainer = document.getElementById('app-container');
+            if (appContainer) appContainer.scrollTop = 0;
             /* View di-render saat dibuka (lazy) — supaya refreshAllViews()
              * tidak perlu me-render semua view yang tersembunyi. */
             renderActiveView();

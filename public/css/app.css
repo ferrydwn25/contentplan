@@ -51,11 +51,26 @@
         .slot-pill { border: 1.5px dashed #D1D5DB; border-radius: 7px; padding: 5px 6px; font-size: 11px; color: #6B7280; text-align: center; margin-top: 4px; background: #F9FAFB; cursor: pointer; transition: 0.2s; }
         .slot-pill:hover { border-color: #007AFF; color: #007AFF; background: #EFF6FF; }
 
+        /* Mobile: bagian atas kepotong (28 Nov 2026). h-screen = 100vh
+         * mengukur viewport "besar" (URL bar tersembunyi) di Safari/Chrome
+         * HP; begitu toolbar muncul/keyboard terbuka, layout 100vh tidak
+         * muat dan bagian atas terdorong keluar karena body overflow-hidden.
+         * 100dvh mengikuti viewport yang terlihat saat itu juga (fallback
+         * 100vh untuk browser lama). min-height/min-width: 0 supaya flex
+         * child bisa menyusut dan #app-container benar-benar scroll di
+         * dalam main, bukan mendorong header ke luar layar. */
+        body.h-screen, main.h-screen { height: 100vh; height: 100dvh; }
+        main.flex-1 { min-height: 0; min-width: 0; }
+        #app-container { min-height: 0; }
+        /* Safe-area (notch/dynamic island): padding atas header mengikuti
+         * inset perangkat; max() menjaga py-3.5 (0.875rem) di desktop. */
+        #app-header { padding-top: max(0.875rem, env(safe-area-inset-top)); }
+
         .phone-mockup { width: 295px; height: 530px; border: 10px solid #1F2937; border-radius: 36px; background: #000; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.16); margin: 0 auto; }
         .phone-notch { width: 105px; height: 18px; background: #1F2937; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 20; }
 
         /* Phone Feed Studio — Feeds & Grid P0+P1 (2026-11-27). */
-        .phone-mockup-feed { width: 360px; max-width: 100%; height: 720px; max-height: calc(100vh - 140px); border: 10px solid #1F2937; border-radius: 36px; background: #000; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.16); margin: 0 auto; }
+        .phone-mockup-feed { width: 360px; max-width: 100%; height: 720px; max-height: calc(100vh - 140px); max-height: calc(100dvh - 140px); border: 10px solid #1F2937; border-radius: 36px; background: #000; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.16); margin: 0 auto; }
         .phone-screen { position: absolute; inset: 0; overflow-y: auto; scroll-snap-type: y mandatory; scrollbar-width: none; background: #000; }
         .phone-screen::-webkit-scrollbar { display: none; }
         .phone-screen-inner { scrollbar-width: none; }
