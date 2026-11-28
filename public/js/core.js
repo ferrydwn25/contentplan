@@ -3,7 +3,7 @@
 // supaya fungsi global tetap bisa dipanggil inline onclick di index.html.
 // LOGIN (2026-11-27): apiGet/apiPost mengirim session_token; bootstrap
 // hanya jalan setelah login (gate di DOMContentLoaded, lihat auth.js).
-        const ALL_VIEWS = ['calendar', 'feeds', 'swipe', 'composer', 'inbox', 'analytics', 'assets', 'brandcontext', 'settings'];
+        const ALL_VIEWS = ['calendar', 'feeds', 'swipe', 'composer', 'inbox', 'analytics', 'ideas', 'assets', 'brandcontext', 'settings'];
         /* Kalender membuka bulan BERJALAN (waktu lokal) — sebelumnya
          * calYear/calMonth di-hardcode November 2026. */
         const _nowLocal = new Date();
@@ -16,6 +16,12 @@
             connections: [],
             inbox: [],
             inboxFilter: 'Unreplied',
+
+            /* Analitik per platform (2026-11-28): metrik Sheet dari bootstrap
+             * + platform yang sedang dibuka di sub-page Analitik. */
+            accountMetrics: [],
+            contentMetrics: [],
+            analyticsPlatform: 'ALL',
             feedOrders: {},               // P2: { 'brand|platform': [content_id...] } dari bootstrap
             feedPlatform: 'Instagram',
             liveFeeds: [],
@@ -200,6 +206,14 @@
             state.assets = res.assets || [];
             state.connections = res.connections || [];
             state.inbox = res.inbox || [];
+            /* Analitik per platform: bootstrap adalah SATU-SATUNYA jalur baca
+             * Sheet ke frontend (gas-proxy GET hanya mengizinkan "bootstrap";
+             * POST "get_data" tidak ada di allowlist). Repo GAS mengembalikan
+             * kunci metrics/accountMetrics; live v11 juga mengembalikan
+             * keduanya. Tanpa ini, grafik pertumbuhan & likes/komentar
+             * per konten tidak punya data. */
+            state.accountMetrics = res.accountMetrics || [];
+            state.contentMetrics = res.metrics || res.contentMetrics || [];
             /* P2: urutan feed tersimpan (FEED_LAYOUT) — ordered_ids bisa
              * string JSON atau array; kunci per brand+platform. */
             state.feedOrders = {};
@@ -234,7 +248,7 @@
 
             const titles = {
                 swipe: 'Swipe (Batch AI)', calendar: 'Kalender', feeds: 'Feeds & Grid', composer: 'Buat Post', inbox: 'Balasan',
-                analytics: 'Analitik', assets: 'Aset', brandcontext: 'Learning & Brand DNA', settings: 'Pengaturan'
+                analytics: 'Analitik', ideas: 'Ide & Tren', assets: 'Aset', brandcontext: 'Learning & Brand DNA', settings: 'Pengaturan'
             };
             document.getElementById('header-title').innerText = titles[viewName] || viewName;
             /* Pindah view: kembalikan scroll kontainer ke atas. Tanpa ini,
@@ -299,6 +313,7 @@
             composer: () => { renderComposerQueue(); updateLivePreview(); },
             inbox: () => renderUnifiedInbox(),
             analytics: () => renderAnalyticsDashboard(),
+            ideas: () => renderIdeasDashboard(),
             assets: () => renderAssetsGallery(),
             brandcontext: () => renderBrandContextCards(),
             settings: () => { renderSlotMatrix(); renderSettingsOAuthCards(); }

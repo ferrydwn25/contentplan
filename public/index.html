@@ -49,6 +49,7 @@
                 <span id="inbox-badge" class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
             </a>
             <a onclick="navigate('analytics')" id="nav-analytics" class="nav-item"><i class="ph ph-chart-bar text-lg"></i> Analitik</a>
+            <a onclick="navigate('ideas')" id="nav-ideas" class="nav-item"><i class="ph ph-trend-up text-lg"></i> Ide & Tren</a>
             <a onclick="navigate('assets')" id="nav-assets" class="nav-item"><i class="ph ph-images text-lg"></i> Aset & Drive</a>
             <a onclick="navigate('settings')" id="nav-settings" class="nav-item"><i class="ph ph-gear text-lg"></i> Pengaturan & Slot</a>
 
@@ -480,6 +481,20 @@
                     </button>
                 </div>
 
+                <!-- SUB-PAGE ANALITIK PER PLATFORM (2026-11-28): tab di dalam
+                     #view-analytics. "Semua" = ringkasan gabungan; satu platform
+                     = sub-page detail (renderPlatformDetail di js/analytics.js).
+                     Data HANYA dari API resmi terhubung + Sheet — tanpa Apify. -->
+                <div class="flex flex-wrap gap-2" role="tablist" aria-label="Pilih platform">
+                    <button type="button" id="an-tab-ALL" onclick="setAnalyticsPlatform('ALL')" class="an-tab an-tab-active">Semua</button>
+                    <button type="button" id="an-tab-YouTube" onclick="setAnalyticsPlatform('YouTube')" class="an-tab">YouTube</button>
+                    <button type="button" id="an-tab-Instagram" onclick="setAnalyticsPlatform('Instagram')" class="an-tab">Instagram</button>
+                    <button type="button" id="an-tab-TikTok" onclick="setAnalyticsPlatform('TikTok')" class="an-tab">TikTok</button>
+                    <button type="button" id="an-tab-Threads" onclick="setAnalyticsPlatform('Threads')" class="an-tab">Threads</button>
+                </div>
+
+                <!-- Ringkasan gabungan ("Semua") — isi lama, id dipertahankan. -->
+                <div id="an-overview" class="space-y-6">
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                     <div class="apple-card p-5"><p class="text-[11px] font-bold text-gray-400 uppercase">Total Followers</p><h3 id="an-followers" class="text-2xl md:text-3xl font-extrabold mt-2">0</h3></div>
                     <div class="apple-card p-5"><p class="text-[11px] font-bold text-gray-400 uppercase">Total Views / Reach</p><h3 id="an-views" class="text-2xl md:text-3xl font-extrabold text-blue-600 mt-2">0</h3></div>
@@ -522,6 +537,102 @@
                         </table>
                     </div>
                 </div>
+                </div><!-- /#an-overview -->
+
+                <!-- SUB-PAGE DETAIL PER PLATFORM — diisi js/analytics.js.
+                     Semua seksi menampilkan empty state bila akun belum
+                     terhubung / datanya belum ada; tidak ada angka palsu. -->
+                <div id="an-platform-detail" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900"><span id="an-detail-title">Platform</span></h2>
+                            <p class="text-xs text-gray-500"><span id="an-detail-account">Akun belum terhubung</span></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span id="an-detail-badge" class="text-[10px] font-bold px-2 py-1 rounded-full bg-gray-100 text-gray-500">Offline</span>
+                            <button type="button" onclick="setAnalyticsPlatform('ALL')" class="apple-btn-secondary px-3 py-2">← Semua platform</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="an-detail-kpis"></div>
+
+                    <div class="apple-card p-6">
+                        <h4 class="font-bold text-base text-gray-900 mb-1">Pertumbuhan Followers</h4>
+                        <p class="text-xs text-gray-500 mb-4">Snapshot followers dari tab ACCOUNT_METRICS (Sheet). Grafik batang CSS — tanpa library tambahan.</p>
+                        <div id="an-growth-chart"></div>
+                        <p id="an-growth-note" class="text-[11px] text-gray-400 mt-3"></p>
+                    </div>
+
+                    <div class="apple-card overflow-hidden">
+                        <div class="p-5 border-b border-gray-100">
+                            <h4 class="font-bold text-base text-gray-900">Konten Teratas</h4>
+                            <p id="an-detail-top-note" class="text-xs text-gray-500 mt-1"></p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-gray-50 text-gray-500 uppercase font-bold border-b border-gray-100">
+                                    <tr>
+                                        <th class="p-4">Judul Konten</th>
+                                        <th class="p-4">Views / Reach</th>
+                                        <th class="p-4">Likes</th>
+                                        <th class="p-4">Komentar</th>
+                                        <th class="p-4">Interaksi</th>
+                                        <th class="p-4">ER</th>
+                                        <th class="p-4">Est. Retensi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="an-detail-top-body" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="apple-card p-6">
+                        <h4 class="font-bold text-base text-gray-900 mb-1">Demografi Audiens</h4>
+                        <p class="text-xs text-gray-500 mb-4">Usia, gender, dan lokasi — hanya dari Insights resmi platform lewat akun terhubung.</p>
+                        <div id="an-demographics"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: IDE & TREN (REFERENSI PUBLIK VIA APIFY) -->
+            <div id="view-ideas" class="view-section hidden max-w-6xl mx-auto space-y-6">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900">Ide &amp; Tren</h2>
+                    <p class="text-xs text-gray-500">Referensi konten performing dari kreator lain (tren publik via Apify) — simpan yang cocok jadi ide di antrean Buat Post.</p>
+                </div>
+
+                <div class="apple-card p-5 space-y-4">
+                    <div class="flex flex-col lg:flex-row lg:items-end gap-4">
+                        <div class="flex-1 min-w-0">
+                            <label class="apple-label" for="ideas-query">Kata kunci tren</label>
+                            <input type="text" id="ideas-query" class="apple-input" placeholder="mis. kopi viral, resep masakan, Roblox horror" onkeydown="if(event.key==='Enter'){searchIdeas();}">
+                        </div>
+                        <div>
+                            <label class="apple-label">Platform</label>
+                            <div class="flex flex-wrap gap-2" role="tablist" aria-label="Pilih platform">
+                                <button type="button" id="ideas-tab-ALL" onclick="setIdeasPlatform('ALL')" class="ideas-tab ideas-tab-active">Semua</button>
+                                <button type="button" id="ideas-tab-tiktok" onclick="setIdeasPlatform('tiktok')" class="ideas-tab">TikTok</button>
+                                <button type="button" id="ideas-tab-instagram" onclick="setIdeasPlatform('instagram')" class="ideas-tab">Instagram</button>
+                                <button type="button" id="ideas-tab-youtube" onclick="setIdeasPlatform('youtube')" class="ideas-tab">YouTube</button>
+                                <button type="button" id="ideas-tab-threads" onclick="setIdeasPlatform('threads')" class="ideas-tab">Threads</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="apple-label">Rentang</label>
+                            <div class="flex flex-wrap gap-2" role="tablist" aria-label="Rentang waktu">
+                                <button type="button" id="ideas-days-7" onclick="setIdeasDays(7)" class="ideas-tab">7 hari</button>
+                                <button type="button" id="ideas-days-14" onclick="setIdeasDays(14)" class="ideas-tab ideas-tab-active">14 hari</button>
+                                <button type="button" id="ideas-days-30" onclick="setIdeasDays(30)" class="ideas-tab">1 bulan</button>
+                            </div>
+                        </div>
+                        <button type="button" id="btn-ideas-search" onclick="searchIdeas()" class="apple-btn px-5 py-2.5 whitespace-nowrap">Cari tren</button>
+                    </div>
+                    <p class="text-[11px] text-gray-400 leading-relaxed">Mengganti platform/rentang langsung mencari ulang (bila sudah ada kata kunci). Satu pencarian menjalankan actor Apify per platform lalu polling tiap 5 detik sampai selesai (maks ~5 menit). Data hanya tren publik — data akun Ferry tidak pernah ditarik lewat Apify.</p>
+                </div>
+
+                <div id="ideas-status"></div>
+                <div id="ideas-results" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                <p id="ideas-footnote" class="text-[11px] text-gray-400 leading-relaxed"></p>
             </div>
 
             <!-- 7. VIEW: ASET & GOOGLE DRIVE -->
@@ -651,6 +762,7 @@
     <script src="/js/feeds.js" defer></script>
     <script src="/js/inbox.js" defer></script>
     <script src="/js/analytics.js" defer></script>
+    <script src="/js/ideas.js" defer></script>
     <script src="/js/calendar.js" defer></script>
     <script src="/js/swipe.js" defer></script>
     <script src="/js/composer.js" defer></script>
