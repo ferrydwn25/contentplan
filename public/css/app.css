@@ -26,6 +26,23 @@
         .cal-event-ready { border-left-color: #10B981; background: #ECFDF5; color: #065F46; }
         .cal-event-idea { border-left-color: #9CA3AF; background: #F9FAFB; color: #4B5563; }
         .cal-event-published { border-left-color: #8B5CF6; background: #F5F3FF; color: #5B21B6; }
+        /* Kalender: warna per platform (2026-11-28) — diletakkan SETELAH
+         * aturan status di atas supaya border kiri platform menang atas
+         * border kiri status (spesifisitas sama, aturan terakhir menang).
+         * Background + warna teks tetap dari status; platform hanya
+         * mewarnai border kiri + dot. YouTube merah, TikTok cyan
+         * (ditebalkan dari #25F4EE agar terbaca di latar terang),
+         * Instagram magenta, Threads hitam, lain-lain abu-abu. */
+        .cal-plat-youtube { border-left-color: #FF0000; }
+        .cal-plat-tiktok { border-left-color: #00C2D1; }
+        .cal-plat-instagram { border-left-color: #E1306C; }
+        .cal-plat-threads { border-left-color: #111827; }
+        .cal-plat-other { border-left-color: #9CA3AF; }
+        .cal-dot { flex: none; width: 7px; height: 7px; border-radius: 9999px; background: #9CA3AF; }
+        .cal-plat-youtube .cal-dot { background: #FF0000; }
+        .cal-plat-tiktok .cal-dot { background: #00C2D1; }
+        .cal-plat-instagram .cal-dot { background: #E1306C; }
+        .cal-plat-threads .cal-dot { background: #111827; }
         @media (max-width: 640px) {
             .cal-cell { min-height: 62px; padding: 3px; }
             .cal-event { font-size: 10px; padding: 2px 4px; margin-bottom: 2px; }
